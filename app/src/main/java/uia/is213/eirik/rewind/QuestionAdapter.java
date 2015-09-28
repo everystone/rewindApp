@@ -23,14 +23,14 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         Question q = getItem(position);
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_room, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_question, parent, false);
         }
         // Lookup view for data population
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-        TextView tvOwner = (TextView) convertView.findViewById(R.id.tvOwner);
+       // TextView tvOwner = (TextView) convertView.findViewById(R.id.tvOwner);
         // Populate the data into the template view using the data object
         tvName.setText(q.text);
-        tvOwner.setText(q.author);
+        //tvOwner.setText(q.author);
         // Return the completed view to render on screen
         return convertView;
     }

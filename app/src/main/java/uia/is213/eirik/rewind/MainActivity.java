@@ -18,6 +18,14 @@ import java.util.ArrayList;
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
 
+/**
+ *
+ * Android app for Meteor project Rewind
+ * uses the Meteor DDP Protocol, https://github.com/delight-im/Android-DDP
+ * Eirik Kvarstein 28.09.2015
+ *
+ */
+
 public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     //Vars
@@ -101,10 +109,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         // s = Collection
         // s1 = id?
         // s2 = json
-
-        // Parse json
         try {
-            //JSONArray arr = new JSONArray(s2);
             JSONObject data = new JSONObject(s2);
 
         switch(s){
