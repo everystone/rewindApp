@@ -9,12 +9,14 @@ import java.util.Date;
  */
 public class Question {
     public String text;
+    public String id;
     public String lectureCode;
     public String author;
     public Date date;
-    public int votes;
+    public Integer votes;
 
-    public Question(String text, String lectureCode, String author){
+    public Question(String id, String text, String lectureCode, String author){
+        this.id = id;
         this.text = text;
         this.lectureCode = lectureCode;
         this.author = author;
@@ -22,6 +24,7 @@ public class Question {
 
         Log.d("SARA", "Question Created: " + text);
     }
+
 
     @Override
     public String toString(){

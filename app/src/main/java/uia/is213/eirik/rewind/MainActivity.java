@@ -14,6 +14,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
 
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
@@ -33,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private static String mUrl = "ws://192.168.11.87:3000/websocket";
     private ArrayList<Room> Rooms;
     private ArrayList<Question> Questions;
-
+    private HashMap<String, Question> voteMap;
     //Controlls
     private ListView roomList;
     private TextView status;
@@ -51,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         // Init
         Rooms = new ArrayList<Room>();
         Questions = new ArrayList<Question>();
+        voteMap = new HashMap<>();
+
         adapter = new QuestionAdapter(this, Questions);
 
         roomList.setAdapter(adapter);
@@ -85,23 +89,23 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     /* Meteor Callbacks */
     @Override
     public void onConnect(boolean b) {
-        status.setText("Connected to: "+mUrl);
+        status.setText("Connected to: " + mUrl);
         Log.d("SARA", "Connected");
 
         //Subscribing to collections
          //String id = mMeteor.subscribe("lectures", "rt2vi");
         String lectureId = "rt2vi";
 
-        String id = mMeteor.subscribe("lectures", new Object[] { lectureId });
-        mMeteor.subscribe("questions", new Object[] { lectureId });
+        String id = mMeteor.subscribe("lectures", new Object[]{lectureId});
+        mMeteor.subscribe("questions", new Object[]{lectureId});
         mMeteor.subscribe("votes", new Object[] { lectureId });
-        Log.d("SARA", "Lecture Subscription id: "+id);
+        Log.d("SARA", "Lecture Subscription id: " + id);
     }
 
     @Override
     public void onDisconnect(int i, String s) {
         status.setText("Disconnected..");
-        Log.d("SARA", "Disconnected: "+s);
+        Log.d("SARA", "Disconnected: " + s);
     }
 
     @Override
@@ -114,15 +118,30 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
         switch(s){
             case "questions":
-                Question q = new Question(data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
+                Question q = new Question(s1, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
                 Questions.add(q);
-                adapter.notifyDataSetChanged(); // tell listview to redraw itself
                 break;
             case "votes":
+                // Add vote to question
+                // Find questionId
+                String id = data.getString("questionId");
+                if(id == null){
+                    Log.d("SARA", "A vote was added without questionId");
+                    throw new Exception("A vote was added without questionId");
+                }
+
+                Question question = qById(id);
+                if(question != null){
+
+                    question.votes++; //Upvote
+                    voteMap.put(s1, question); // We need to save the Vote ID, to identify Question when removing vote.
+                }
                 break;
         }
+
+            adapter.notifyDataSetChanged(); // tell listview to redraw itself
         //Log.d("SARA", "Questions: "+Questions.size());
-       // Log.d("SARA", "Data Added: "+s+", "+s1+", "+s2);
+        Log.d("SARA", "Data Added: "+s+", "+s1+", "+s2);
         }catch(JSONException ex){
             Log.d("SARA", "Json Ex: "+ex.getMessage());
         }catch(Exception ex){
@@ -136,12 +155,39 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     }
 
     @Override
-    public void onDataRemoved(String s, String s1) {
-        Log.d("SARA", "Data Removed: "+s+", "+s1);
+    public void onDataRemoved(String s, String id) {
+        switch(s){
+
+            case "votes":
+                //Lookup Question from voteMap
+                if(voteMap.containsKey(id)){
+                    Question q = voteMap.get(id);
+                    if(q != null){
+                        q.votes--; // Downvote
+                        voteMap.remove(id); // Remove vote from voteMap.
+                    }
+                }
+
+                break;
+        }
+        adapter.notifyDataSetChanged(); // tell listview to redraw itself
+        Log.d("SARA", "Data Removed: "+s+", "+id);
+
     }
 
     @Override
     public void onException(Exception e) {
         Log.d("SARA", "Exception: "+e.getMessage());
     }
+
+    //Misc helpers
+    private Question qById(String id){
+        for (Question q : Questions) {
+            if(q.id.equals(id))
+                return q;
+        }
+            Log.d("SARA", "qById no match: "+id);
+            return null;
+    }
+
 }

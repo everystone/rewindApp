@@ -6,6 +6,7 @@
         android:id="@+id/icon"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:layout_weight="0"
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
@@ -13,7 +14,15 @@
         android:src="@drawable/topic" />
     <TextView
         android:id="@+id/tvName"
+        android:layout_weight="1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Name" />
+    <TextView
+        android:id="@+id/tvVotes"
+        android:layout_marginLeft="30dp"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Votes" />
 </LinearLayout>

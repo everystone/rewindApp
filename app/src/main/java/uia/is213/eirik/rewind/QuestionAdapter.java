@@ -27,10 +27,10 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         }
         // Lookup view for data population
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-       // TextView tvOwner = (TextView) convertView.findViewById(R.id.tvOwner);
+        TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
         // Populate the data into the template view using the data object
         tvName.setText(q.text);
-        //tvOwner.setText(q.author);
+        tvVotes.setText(q.votes.toString());
         // Return the completed view to render on screen
         return convertView;
     }
