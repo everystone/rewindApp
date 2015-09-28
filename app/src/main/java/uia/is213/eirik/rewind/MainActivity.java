@@ -5,20 +5,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.json.JSONArray;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
+import im.delight.android.ddp.MeteorSingleton;
 
 /**
  *
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private ArrayList<Question> Questions;
     private HashMap<String, Question> voteMap;
     //Controlls
-    private ListView roomList;
+    private ListView questionList;
     private TextView status;
     private QuestionAdapter adapter; // using a custom Adapter for Rooms
 
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         setContentView(R.layout.activity_main);
 
         //Get reference to controls
-        roomList = (ListView)findViewById(R.id.roomListView);
+        questionList = (ListView)findViewById(R.id.questionListView);
         status = (TextView)findViewById(R.id.statusText);
 
         // Init
@@ -56,13 +56,30 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         voteMap = new HashMap<>();
 
         adapter = new QuestionAdapter(this, Questions);
+        //Attach Click Listener to adapter ( Question List )
 
-        roomList.setAdapter(adapter);
 
+        questionList.setAdapter(adapter);
+        /*
+        questionList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle clicks on Questions
+                // Upvote = Turn green, Downvote = red
+
+                Question q = (Question)v;
+            }
+        });
+    */
         //Connect Meteor
-        mMeteor = new Meteor(this, mUrl);
+        mMeteor = MeteorSingleton.createInstance(this, mUrl);
+        //mMeteor = new Meteor(this, mUrl);
         mMeteor.setCallback(this);
     }
+
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -139,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 break;
         }
 
-            adapter.notifyDataSetChanged(); // tell listview to redraw itself
+         adapter.notifyDataSetChanged(); // tell listview to redraw itself
         //Log.d("SARA", "Questions: "+Questions.size());
         Log.d("SARA", "Data Added: "+s+", "+s1+", "+s2);
         }catch(JSONException ex){
@@ -172,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         }
         adapter.notifyDataSetChanged(); // tell listview to redraw itself
         Log.d("SARA", "Data Removed: "+s+", "+id);
-
     }
 
     @Override
@@ -189,5 +205,4 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
             Log.d("SARA", "qById no match: "+id);
             return null;
     }
-
 }
