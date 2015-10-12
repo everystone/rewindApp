@@ -29,8 +29,8 @@ public class RoomAdapter extends ArrayAdapter<Room> {
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
         TextView tvOwner = (TextView) convertView.findViewById(R.id.tvOwner);
         // Populate the data into the template view using the data object
-        tvName.setText(room.Name);
-        tvOwner.setText(room.Owner);
+        tvName.setText(room.name);
+        tvOwner.setText(room.owner);
         // Return the completed view to render on screen
         return convertView;
     }

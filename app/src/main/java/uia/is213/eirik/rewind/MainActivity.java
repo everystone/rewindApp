@@ -1,13 +1,18 @@
 package uia.is213.eirik.rewind;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import org.json.JSONException;
@@ -15,10 +20,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
 import im.delight.android.ddp.MeteorSingleton;
+import im.delight.android.ddp.ResultListener;
 
 /**
  *
@@ -40,6 +48,16 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private ListView questionList;
     private TextView status;
     private QuestionAdapter adapter; // using a custom Adapter for Rooms
+    private String dialogResult = "EMPTY";
+
+    //Meteor stuff
+
+    private Room currentRoom;
+
+    private interface AlertDialogCallback<T>
+    {
+        public void alertDialogCallback(T ret);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,30 +72,16 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         Rooms = new ArrayList<Room>();
         Questions = new ArrayList<Question>();
         voteMap = new HashMap<>();
-
         adapter = new QuestionAdapter(this, Questions);
         //Attach Click Listener to adapter ( Question List )
 
 
         questionList.setAdapter(adapter);
-        /*
-        questionList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle clicks on Questions
-                // Upvote = Turn green, Downvote = red
 
-                Question q = (Question)v;
-            }
-        });
-    */
         //Connect Meteor
         mMeteor = MeteorSingleton.createInstance(this, mUrl);
-        //mMeteor = new Meteor(this, mUrl);
         mMeteor.setCallback(this);
     }
-
-
 
 
 
@@ -98,10 +102,66 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if(id == R.id.action_ask){
+
+            //Get question text
+            inputDialog("Ask a question", new Callable<Boolean>(){
+                @Override
+                public Boolean call(){
+                    return postQuestion();
+                }
+            });
+            Log.d("SARA", dialogResult);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    //Postes a question using text from dialogResult to currentRoom
+    //Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
+   private boolean postQuestion(){
+       Object[] methodArgs = new Object[1];
+       Map<String,String> options = new HashMap<>();
+
+       options.put("lectureCode", currentRoom.code);
+       options.put("questionText", dialogResult);
+       methodArgs[0] = options;
+
+       MeteorSingleton.getInstance().call("questionInsertAddVote", methodArgs);
+       return true;
+    }
+
+    /* input dialog
+     * @parameter title: Title to display
+     * @parameter: func - callback on success
+     * */
+    private void inputDialog(String title, final Callable func) {
+
+        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        final EditText input = new EditText(this);
+        alert.setView(input);
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                 dialogResult = input.getText().toString();
+                try {
+                    func.call();
+                }catch(Exception ex){
+                    //Callback raised exception
+
+                }
+                //String value = input.getText().toString().trim();
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        alert.show();
+    }
+
 
     /* Meteor Callbacks */
     @Override
@@ -109,33 +169,45 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         status.setText("Connected to: " + mUrl);
         Log.d("SARA", "Connected");
 
-        //Subscribing to collections
-         //String id = mMeteor.subscribe("lectures", "rt2vi");
-        String lectureId = "rt2vi";
+        //Clear Questions..
+        Questions.clear();
 
-        String id = mMeteor.subscribe("lectures", new Object[]{lectureId});
-        mMeteor.subscribe("questions", new Object[]{lectureId});
-        mMeteor.subscribe("votes", new Object[] { lectureId });
-        Log.d("SARA", "Lecture Subscription id: " + id);
+        //Authenticate?
+        mMeteor.loginWithUsername("john", "password", new ResultListener() {
+            @Override
+            public void onSuccess(String s) {
+
+            }
+
+            @Override
+            public void onError(String s, String s1, String s2) {
+
+            }
+        });
+
+        currentRoom = new Room("qjf9m");
+
+        //Log.d("SARA", "Lecture Subscription id: " + id);
     }
 
     @Override
     public void onDisconnect(int i, String s) {
         status.setText("Disconnected..");
+        Questions.clear();
         Log.d("SARA", "Disconnected: " + s);
     }
 
     @Override
-    public void onDataAdded(String s, String s1, String s2) {
-        // s = Collection
-        // s1 = id?
-        // s2 = json
+    public void onDataAdded(String Collection, String documentId, String newJsonVals) {
+        // Collection = Collection
+        // documentId = id?
+        // newJsonVals = json
         try {
-            JSONObject data = new JSONObject(s2);
+            JSONObject data = new JSONObject(newJsonVals);
 
-        switch(s){
+        switch(Collection){
             case "questions":
-                Question q = new Question(s1, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
+                Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
                 Questions.add(q);
                 break;
             case "votes":
@@ -151,14 +223,14 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 if(question != null){
 
                     question.votes++; //Upvote
-                    voteMap.put(s1, question); // We need to save the Vote ID, to identify Question when removing vote.
+                    voteMap.put(documentId, question); // We need to save the Vote ID, to identify Question when removing vote.
                 }
                 break;
         }
 
          adapter.notifyDataSetChanged(); // tell listview to redraw itself
         //Log.d("SARA", "Questions: "+Questions.size());
-        Log.d("SARA", "Data Added: "+s+", "+s1+", "+s2);
+        Log.d("SARA", "Data Added: "+Collection+", "+documentId+", "+newJsonVals);
         }catch(JSONException ex){
             Log.d("SARA", "Json Ex: "+ex.getMessage());
         }catch(Exception ex){
@@ -167,13 +239,13 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     }
 
     @Override
-    public void onDataChanged(String s, String s1, String s2, String s3) {
-        Log.d("SARA", "Data changed: "+s+", "+s1+", "+s2+", "+s3);
+    public void onDataChanged(String Collection, String documentId, String updatedVals, String removedVals) {
+        Log.d("SARA", "Data changed: " + Collection + ", " + documentId + ", " + updatedVals + ", " + removedVals);
     }
 
     @Override
-    public void onDataRemoved(String s, String id) {
-        switch(s){
+    public void onDataRemoved(String Collection, String id) {
+        switch(Collection){
 
             case "votes":
                 //Lookup Question from voteMap
@@ -188,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 break;
         }
         adapter.notifyDataSetChanged(); // tell listview to redraw itself
-        Log.d("SARA", "Data Removed: "+s+", "+id);
+        Log.d("SARA", "Data Removed: " + Collection + ", " + id);
     }
 
     @Override

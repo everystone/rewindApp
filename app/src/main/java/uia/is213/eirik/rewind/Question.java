@@ -32,22 +32,29 @@ public class Question {
     }
 
     // Hmm.. Call Meteor Vote, server should know if we already voted or not.
-    // Need access to Meteor object from Question class. should make static meteor class
+    //
     public void Vote(){
-        // client/views/question/question.js
+        /* client/views/question/question.js
+         * from votes.js:
+         * 	check(this.userId, String); // this is null
+            check(voteAttributes, {
+            questionId: String,
+            lectureCode: String
+            });
+         */
         //Object[] vote =  new Object[] { id, lectureCode };
-        String json = String.format("questionId: %s, lectureCode: %s", id, lectureCode);
 
-        /*
+
+
         Object[] methodArgs = new Object[1];
         Map<String,String> options = new HashMap<>();
-        methodArgs[0] = options;
+
         options.put("questionId", id);
         options.put("lectureCode", lectureCode);
-        */
-        String[] values = { "questionId: "+ id, "lectureCode: "+lectureCode };
-        MeteorSingleton.getInstance().call("voteInsert", values);
-        Log.d("SARA", "comon..");
+        methodArgs[0] = options;
+
+        MeteorSingleton.getInstance().call("voteInsert", methodArgs);
+       // Log.d("SARA", "comon..");
 
     }
 
