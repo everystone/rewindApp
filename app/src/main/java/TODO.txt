@@ -1,0 +1,16 @@
+Server:
+Checks for userId fails
+
+lib\collections\questions\.js ln 6:
+check(this.userId, String);
+
+lib\collections\votes.js ln 14
+check(Meteor.userId(), String);
+
+
+App:
+Authentication, userId on server does not get set.
+Votes: Need to store bool about users vote on every question, to be able to call unvote. ( for local user ) currently only insertVote is called every time.
+Settings page
+Refactoring
+User Feedback ( Lecture, users, etc )
