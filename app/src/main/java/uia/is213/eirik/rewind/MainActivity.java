@@ -1,7 +1,9 @@
 package uia.is213.eirik.rewind;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +14,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 
 import org.json.JSONException;
@@ -26,7 +28,6 @@ import java.util.concurrent.Callable;
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
 import im.delight.android.ddp.MeteorSingleton;
-import im.delight.android.ddp.ResultListener;
 
 /**
  *
@@ -40,20 +41,23 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     //Vars
     private Meteor mMeteor;
-    private static String mUrl = "ws://192.168.11.87:3000/websocket";
+    private static String mUrl = "ws://eirik.pw:3000/websocket"; //192.168.11.87
+  //private static String mUrl = "192.168.11.87:3000/websocket";
     private ArrayList<Lecture> lectures;
     private ArrayList<Question> Questions;
-    private HashMap<String, Question> voteMap;
+    //private HashMap<Vote, Question> voteMap;
+    private ArrayList<Vote> voteMap;
+    public static String PREFS_NAME = "rewindAppPrefs";
     //Controlls
     private ListView questionList;
     private TextView status;
     private TextView lectureCode;
     private QuestionAdapter adapter; // using a custom Adapter for lectures
-    private String dialogResult = "EMPTY";
-
+    private String dialogResult = "";
+    private static  Context context;
     //Meteor stuff
     private Lecture currentLecture;
-
+    private String defaultLectureCode = "pdc52";
 
     //User
     private User localUser;
@@ -61,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = getApplicationContext();
+
         setContentView(R.layout.activity_main);
 
         //Get reference to controls
@@ -71,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         // Init
         lectures = new ArrayList<Lecture>();
         Questions = new ArrayList<Question>();
-        voteMap = new HashMap<>();
+        voteMap = new ArrayList<Vote>();
         adapter = new QuestionAdapter(this, Questions);
 
        //Attach Click Listener to adapter ( Question List )
@@ -86,15 +92,21 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
             }
         });
 
-        //Init local user, read from file etc.
-        localUser = new User("android", "password", "test@mail.com");
+
+        //Check if user data exists on device
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        localUser = new User(settings.getString("username", "default"), settings.getString("password", "pass"), settings.getString("email", "default@localhost.com"));
+
+        defaultLectureCode = settings.getString("lectureCode", "odycl");
 
         //Connect Meteor
         mMeteor = MeteorSingleton.createInstance(this, mUrl);
         mMeteor.setCallback(this);
     }
 
-
+    public static Context getAppContext(){
+        return context;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -171,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     /* input dialog
      * @parameter title: Title to display
      * @parameter: func - callback on success (OK button)
+     * Stores User Input in dialogResult.
      * */
     private void inputDialog(String title, final Callable func) {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -216,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
          */
         localUser.Authenticate();
 
-        currentLecture = new Lecture("qjf9m"); //debug
+        currentLecture = new Lecture(defaultLectureCode); //debug
         lectureCode.setText(currentLecture.code);
     }
 
@@ -229,9 +242,8 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     @Override
     public void onDataAdded(String Collection, String documentId, String newJsonVals) {
-        // Collection = Collection
-        // documentId = id?
-        // newJsonVals = json
+        // votes, 8n3hviBnRAaLK88bv, {"lectureCode":"pdc52","questionId":"9MdB2JyKpJuKzPNMX","author":"BZaHJSRMupGJxAJ47"}
+        // questions, 2BpDfDmv3sNWgMxXQ, {"lectureCode":"pdc52","questionText":"Question #9","author":"j2npZDqK5aNgg7QGy","submitted":{"$date":1444738651297}}
         try {
             JSONObject data = new JSONObject(newJsonVals);
 
@@ -241,18 +253,30 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 Questions.add(q);
                 break;
             case "votes":
+                Vote vote = new Vote(documentId, data.getString("lectureCode"), data.getString("author"), data.getString("questionId"));
                 // Add vote to question
                 // Find questionId
-                String id = data.getString("questionId");
-                if(id == null){
+               // String author = data.getString("author");
+               // String id = data.getString("questionId");
+                if(vote.id == null){
                     Log("A vote was added without questionId");
                     throw new Exception("A vote was added without questionId");
                 }
 
-                Question question = qById(id);
+                //Find which Question this Vote belongs to
+                Question question = qById(vote.questionId);
                 if(question != null){
                     question.votes++;
-                    voteMap.put(documentId, question); // We need to save the Vote ID, to identify Question when removing vote.
+                    vote.setQuestion(question);
+
+                    voteMap.add(vote);
+                    //voteMap.put(vote, question); // We need to save the Vote ID, to identify Question when removing vote.
+
+                    //Check if this was Our Vote.
+                    if(vote.author.equals(localUser.getId())){
+                        question.hasVoted = true;
+                        Log("*** Our Vote ***");
+                    }
                 }
                 break;
         }
@@ -274,15 +298,22 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     @Override
     public void onDataRemoved(String Collection, String id) {
+        // votes, 2sNMN6oxnsj5eAEaC
         switch(Collection){
 
             case "votes":
                 //Lookup Question from voteMap
-                if(voteMap.containsKey(id)){
-                    Question q = voteMap.get(id);
+                Vote v = vById(id);
+                if(v != null){
+                    Question q = v.getQuestion();
                     if(q != null){
                         q.votes--; // Downvote
-                        voteMap.remove(id); // Remove vote from voteMap.
+                        voteMap.remove(v); // Remove vote from voteMap.
+
+                        //Check if this was Our Vote
+                       if(v.author.equals(localUser.getId())){
+                           q.hasVoted = false;
+                       }
                     }
                 }
 
@@ -291,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
             //When we unsubscribe from questions the server will tell us the id of questions we no longer have access to
             case "questions":
                 if(qById(id) != null){
-                Questions.remove(qById(id));
+                    Questions.remove(qById(id));
                 }
                 break;
         }
@@ -313,4 +344,14 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
             Log("qById no match: "+id);
             return null;
     }
+
+    private Vote vById(String id){
+        for(Vote v : voteMap){
+            if(v.id.equals(id))
+                return v;
+        }
+        Log("vById no match: "+id);
+        return null;
+    }
+
 }

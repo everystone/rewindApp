@@ -1,5 +1,7 @@
 package uia.is213.eirik.rewind;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import im.delight.android.ddp.MeteorSingleton;
@@ -35,6 +37,9 @@ public class Lecture {
         MeteorSingleton.getInstance().call("memberInsert", new Object[]{code});
         Log.d("SARA", "Subscription ids:");
         Log.d("SARA", subIdQ+", "+subIdV);
+
+        //Save
+        KeyValueDB.setKeyValue("lectureCode", this.code);
     }
 
     public void Leave(){

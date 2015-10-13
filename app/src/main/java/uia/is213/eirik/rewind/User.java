@@ -1,8 +1,14 @@
 package uia.is213.eirik.rewind;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
-import im.delight.android.ddp.Meteor;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Date;
+
 import im.delight.android.ddp.MeteorSingleton;
 import im.delight.android.ddp.ResultListener;
 
@@ -13,6 +19,9 @@ public class User {
     public String username;
     public String password;
     public String email;
+    private String userId;  //Gets returned from Meteor server when Authenticated
+    private String token;
+    private String tokenExpires;
     public boolean isLoggedIn=false;
 
     public User(String username, String password, String email) {
@@ -22,31 +31,55 @@ public class User {
     }
 
     void Log(String msg){
-        Log.d("AUTH", msg);
+        Log.d("SARA", msg);
+    }
+
+    public String getId(){
+        return this.userId;
+    }
+
+
+    private void saveId(String json){
+        //{"id":"kHH3m6jMwABuD6CY4","token":"3LB5e2YD-fiOQ_YhVSOB49_LtopfpYYoyY6jkpFXp2U","tokenExpires":{"$date":1452530864152}}
+        try {
+            JSONObject data = new JSONObject(json);
+            this.userId = data.getString("id");
+            this.token = data.getString("token");
+            this.tokenExpires = data.getString("tokenExpires");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //Debug
+        Log("id: "+userId+", token:" +token+", tokenExpires:"+tokenExpires);
+        KeyValueDB.SaveUserData(username, password, email);
     }
 
     public void Authenticate(){
-        MeteorSingleton.getInstance().registerAndLogin(this.username, this.email, this.password, new ResultListener() {
+        MeteorSingleton.getInstance().loginWithUsername(this.username, this.password, new ResultListener() {
             @Override
             public void onSuccess(String s) {
                 Log("Authenticated: " + s);
+                saveId(s);
                 isLoggedIn=true;
             }
             @Override
             public void onError(String s, String s1, String s2) {
                 Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
-                if (s1.equals("Username already exists.")) {
-                    MeteorSingleton.getInstance().loginWithUsername(username, password, new ResultListener() {
+                if (s1.equals("User not found")) {
+                    MeteorSingleton.getInstance().registerAndLogin(username, email, password, new ResultListener() {
                         @Override
                         public void onSuccess(String s) {
-                            Log("Authenticated: " + s);
-                            isLoggedIn=true;
+                            Log("Registererd " + s);
+                            saveId(s);
+                            isLoggedIn = true;
                         }
 
                         @Override
                         public void onError(String s, String s1, String s2) {
                             Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
-                            isLoggedIn=false;
+                            isLoggedIn = false;
                         }
                     });
                 }

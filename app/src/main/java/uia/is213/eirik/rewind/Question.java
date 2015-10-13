@@ -20,6 +20,7 @@ public class Question {
     public String author;
     public Date date;
     public Integer votes;
+    public boolean hasVoted = false; // If App user has voted on this question
 
     public Question(String id, String text, String lectureCode, String author){
         this.id = id;
@@ -44,17 +45,23 @@ public class Question {
          */
         //Object[] vote =  new Object[] { id, lectureCode };
 
+        // If App user has not voted on this question
+        if(!hasVoted) {
+            Object[] methodArgs = new Object[1];
+            Map<String, String> options = new HashMap<>();
 
+            options.put("questionId", id);
+            options.put("lectureCode", lectureCode);
+            methodArgs[0] = options;
 
-        Object[] methodArgs = new Object[1];
-        Map<String,String> options = new HashMap<>();
+            MeteorSingleton.getInstance().call("voteInsert", methodArgs);
+            // No need to set hasVoted to true here, when we receive the Vote back from the server, it will be sat to true.
+        }else {
+            // Remove our Vote
+            Log.d("SARA", "Removing our vote: "+id);
+            MeteorSingleton.getInstance().call("voteDelete", new Object[]{ id});
 
-        options.put("questionId", id);
-        options.put("lectureCode", lectureCode);
-        methodArgs[0] = options;
-
-        MeteorSingleton.getInstance().call("voteInsert", methodArgs);
-       // Log.d("SARA", "comon..");
+        }
 
     }
 
