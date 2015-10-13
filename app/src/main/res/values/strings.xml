@@ -3,7 +3,8 @@
 
     <string name="server_ip">Rewind Server Ip</string>
     <string name="lecture_select">Enter Lecture Code</string>
-    <string name="status"></string>
+    <string name="status">STATUS_TEXT</string>
+    <string name="lectureCode">12345</string>
 
     <string name="action_ask_question">Ask a Question..</string>
     <string name="action_change_lecture">Enter Lecture..</string>

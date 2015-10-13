@@ -7,9 +7,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import org.json.JSONException;
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     //Controlls
     private ListView questionList;
     private TextView status;
+    private TextView lectureCode;
     private QuestionAdapter adapter; // using a custom Adapter for lectures
     private String dialogResult = "EMPTY";
 
@@ -62,16 +66,25 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         //Get reference to controls
         questionList = (ListView)findViewById(R.id.questionListView);
         status = (TextView)findViewById(R.id.statusText);
+        lectureCode = (TextView)findViewById(R.id.lectureCode);
 
         // Init
         lectures = new ArrayList<Lecture>();
         Questions = new ArrayList<Question>();
         voteMap = new HashMap<>();
         adapter = new QuestionAdapter(this, Questions);
-        //Attach Click Listener to adapter ( Question List )
 
-
+       //Attach Click Listener to adapter ( Question List )
         questionList.setAdapter(adapter);
+        questionList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Question q = adapter.getItem(position);
+                q.Vote();
+                //Toast.makeText(getApplicationContext(), q.text, Toast.LENGTH_SHORT).show();
+
+            }
+        });
 
         //Init local user, read from file etc.
         localUser = new User("android", "password", "test@mail.com");
@@ -130,6 +143,8 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                     }
                     //Questions.clear();
                     currentLecture = new Lecture(dialogResult);
+                    lectureCode.setText(currentLecture.code);
+
                     return null;
                 }
             });
@@ -202,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         localUser.Authenticate();
 
         currentLecture = new Lecture("qjf9m"); //debug
+        lectureCode.setText(currentLecture.code);
     }
 
     @Override

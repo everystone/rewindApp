@@ -10,13 +10,13 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        android:src="@drawable/topic" />
+        android:src="@drawable/question" />
     <TextView
         android:id="@+id/tvName"
         android:layout_weight="1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
         android:text="Name" />
     <TextView
         android:id="@+id/tvVotes"
@@ -24,5 +24,6 @@
         android:layout_weight="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#48adff"
         android:text="Votes" />
 </LinearLayout>

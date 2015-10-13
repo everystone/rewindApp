@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,18 +37,28 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         tvName.setText(q.text);
         tvVotes.setText(q.votes.toString());
 
-        //attach Click event
+        //Create animation
+/*
+        final AlphaAnimation anim2 = new AlphaAnimation(0.7f, 0.0f);
+        //final TranslateAnimation anim2 = new TranslateAnimation(0, 200, 0, 0);
+        anim2.setFillAfter(false);
+        anim2.setFillBefore(true);
+        anim2.setDuration(200);
+
+
 
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 q.Vote();
-                v.animate();
-                v.setBackgroundColor(120);
-                Toast.makeText(getContext(), q.text, Toast.LENGTH_SHORT).show();
+              //  v.startAnimation(anim2);
+
+                //v.animate
+                // v.setBackgroundColor(120);
+                // Toast.makeText(getContext(), q.text, Toast.LENGTH_SHORT).show();
             }
         });
-
+*/
         // Return the completed view to render on screen
         return convertView;
     }
