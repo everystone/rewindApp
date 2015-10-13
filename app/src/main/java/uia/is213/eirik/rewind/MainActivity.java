@@ -48,8 +48,11 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private String dialogResult = "EMPTY";
 
     //Meteor stuff
-
     private Lecture currentLecture;
+
+
+    //User
+    private User localUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,9 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
 
         questionList.setAdapter(adapter);
+
+        //Init local user, read from file etc.
+        localUser = new User("android", "password", "test@mail.com");
 
         //Connect Meteor
         mMeteor = MeteorSingleton.createInstance(this, mUrl);
@@ -180,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     void Log(String msg){
         Log.d("SARA", msg);
     }
-
     /* Meteor Callbacks */
     @Override
     public void onConnect(boolean b) {
@@ -190,27 +195,20 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         //Clear Questions..
         Questions.clear();
 
-        //Authenticate?
-        mMeteor.loginWithUsername("john", "password", new ResultListener() {
-            @Override
-            public void onSuccess(String s) {
+        /*
+         * Because of checks on this.userId on server, we must authenticate
+         * so that this.userId is set on server.
+         */
+        localUser.Authenticate();
 
-            }
-
-            @Override
-            public void onError(String s, String s1, String s2) {
-
-            }
-        });
-
-        currentLecture = new Lecture("qjf9m");
+        currentLecture = new Lecture("qjf9m"); //debug
     }
 
     @Override
     public void onDisconnect(int i, String s) {
         status.setText("Disconnected..");
         Questions.clear();
-        Log("Disconnected: " + s);
+        //Log("Disconnected: " + s);
     }
 
     @Override
