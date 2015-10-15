@@ -1,8 +1,12 @@
 package uia.is213.eirik.rewind;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -28,6 +32,7 @@ import java.util.concurrent.Callable;
 import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
 import im.delight.android.ddp.MeteorSingleton;
+import im.delight.android.ddp.ResultListener;
 
 /**
  *
@@ -47,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private ArrayList<Question> Questions;
     //private HashMap<Vote, Question> voteMap;
     private ArrayList<Vote> voteMap;
-    public static String PREFS_NAME = "rewindAppPrefs";
+    private static String PREFS_NAME = "rewindAppPrefs";
     //Controlls
     private ListView questionList;
     private TextView status;
@@ -59,14 +64,21 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     private Lecture currentLecture;
     private String defaultLectureCode = "pdc52";
 
+    //Notifications
+    NotificationManager notificationManager;
+
     //User
     private User localUser;
+
+    public static Context getAppContext(){
+        return context;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
-
+        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         setContentView(R.layout.activity_main);
 
         //Get reference to controls
@@ -104,9 +116,6 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         mMeteor.setCallback(this);
     }
 
-    public static Context getAppContext(){
-        return context;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -150,12 +159,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
                 @Override
                 public Void call() throws Exception {
-                    if(currentLecture != null){
-                        currentLecture.Leave();
-                    }
-                    //Questions.clear();
-                    currentLecture = new Lecture(dialogResult);
-                    lectureCode.setText(currentLecture.code);
+                    changeLecture(dialogResult);
 
                     return null;
                 }
@@ -166,11 +170,29 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         return super.onOptionsItemSelected(item);
     }
 
+    /*
+     * Create  & Display Notification
+     */
+    private void notify(String title, String text){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Notification n  = new Notification.Builder(this)
+                .setContentTitle("Rewind - "+title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.question)
+              //  .setSmallIcon(R.drawable.icon)
+                .setAutoCancel(true) //clears Notification when clicked on
+                .setContentIntent(pIntent).build();
+
+        notificationManager.notify(0, n);
+    }
+
     //Postes a question using text from dialogResult to currentLecture
     //Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
    private boolean postQuestion(){
        Object[] methodArgs = new Object[1];
-       Map<String,String> options = new HashMap<>();
+       Map<String, String> options = new HashMap<>();
 
        options.put("lectureCode", currentLecture.code);
        options.put("questionText", dialogResult);
@@ -178,37 +200,31 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
        MeteorSingleton.getInstance().call("questionInsertAddVote", methodArgs);
        return true;
-    }
+   }
 
-    /* input dialog
-     * @parameter title: Title to display
-     * @parameter: func - callback on success (OK button)
-     * Stores User Input in dialogResult.
-     * */
-    private void inputDialog(String title, final Callable func) {
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        final EditText input = new EditText(this);
-        alert.setTitle(title);
-        alert.setView(input);
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                dialogResult = input.getText().toString();
+    private void createLecture() {
+        MeteorSingleton.getInstance().call("lectureInsert", new ResultListener() {
+            @Override
+            public void onSuccess(String s) {
                 try {
-                    func.call();
-                } catch (Exception ex) {
-                    //Callback raised exception
+                    JSONObject res = new JSONObject(s);
+                    String generatedLectureCode = res.getString("lectureCode");
+                    changeLecture(generatedLectureCode);
 
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
-        });
 
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                dialog.cancel();
+            @Override
+            public void onError(String s, String s1, String s2) {
+
             }
         });
-        alert.show();
     }
+
+
+
 
 
     void Log(String msg){
@@ -251,6 +267,9 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
             case "questions":
                 Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
                 Questions.add(q);
+                //If this is not our question, notify us
+                if(!q.author.equals(localUser.getId()))
+                    notify("New question..", q.text);
                 break;
             case "votes":
                 Vote vote = new Vote(documentId, data.getString("lectureCode"), data.getString("author"), data.getString("questionId"));
@@ -336,6 +355,46 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     }
 
     //Misc helpers
+
+    private void changeLecture(String code){
+        if(currentLecture != null){
+            currentLecture.Leave();
+        }
+        //Questions.clear();
+        currentLecture = new Lecture(code);
+        lectureCode.setText(currentLecture.code);
+    }
+
+    /* input dialog
+     * @parameter title: Title to display
+     * @parameter: func - callback on success (OK button)
+     * Stores User Input in dialogResult.
+     * */
+    private void inputDialog(String title, final Callable func) {
+        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        final EditText input = new EditText(this);
+        alert.setTitle(title);
+        alert.setView(input);
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialogResult = input.getText().toString();
+                try {
+                    func.call();
+                } catch (Exception ex) {
+                    //Callback raised exception
+
+                }
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        alert.show();
+    }
+
     private Question qById(String id){
         for (Question q : Questions) {
             if(q.id.equals(id))
