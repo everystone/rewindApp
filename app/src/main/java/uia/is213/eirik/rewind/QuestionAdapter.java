@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import java.util.Random;
  * Custom adapter writeup: https://github.com/codepath/android_guides/wiki/Using-an-ArrayAdapter-with-ListView
  */
 public class QuestionAdapter extends ArrayAdapter<Question> {
+    private int[] colors = new int[]{ 0xffF8F8F8, 0xffffffff };
     public QuestionAdapter(Context ctx, ArrayList<Question> questions){
         super(ctx, 0, questions);
     }
@@ -32,33 +34,19 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         }
         // Lookup view for data population
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-        TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
+        TextView tvUsers = (TextView) convertView.findViewById(R.id.textViewUsers);
+        //TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
+
+        ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
         // Populate the data into the template view using the data object
         tvName.setText(q.text);
-        tvVotes.setText(q.votes.toString());
+        tvVotes.setProgress(q.votes);
+        tvVotes.setMax(MainActivity.users);
 
-        //Create animation
-/*
-        final AlphaAnimation anim2 = new AlphaAnimation(0.7f, 0.0f);
-        //final TranslateAnimation anim2 = new TranslateAnimation(0, 200, 0, 0);
-        anim2.setFillAfter(false);
-        anim2.setFillBefore(true);
-        anim2.setDuration(200);
-
-
-
-        convertView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                q.Vote();
-              //  v.startAnimation(anim2);
-
-                //v.animate
-                // v.setBackgroundColor(120);
-                // Toast.makeText(getContext(), q.text, Toast.LENGTH_SHORT).show();
-            }
-        });
-*/
+        int colorpos = position % colors.length;
+        //super.getView(position, convertView, parent).setBackgroundColor(colors[colorpos]);
+        //tvVotes.setText(q.votes.toString());
+        convertView.setBackgroundColor(colors[colorpos]);
         // Return the completed view to render on screen
         return convertView;
     }

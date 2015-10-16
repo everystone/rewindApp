@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     //Controlls
     private ListView questionList;
     private TextView status;
-    private TextView lectureCode;
     private QuestionAdapter adapter; // using a custom Adapter for lectures
     private String dialogResult = "";
     private static  Context context;
@@ -73,10 +72,23 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
     public static Context getAppContext(){
         return context;
     }
+    public static Integer users;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        //Fetch IP
+        String ip = data.getExtras().getString("server_ip");
+        //Compare with current Ip, if changed, reconnect to new.
+
+        Log("Server Ip: "+ip);
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        users=5;
         context = getApplicationContext();
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         setContentView(R.layout.activity_main);
@@ -84,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         //Get reference to controls
         questionList = (ListView)findViewById(R.id.questionListView);
         status = (TextView)findViewById(R.id.statusText);
-        lectureCode = (TextView)findViewById(R.id.lectureCode);
+        //lectureCode = (TextView)findViewById(R.id.lectureCode);
 
         // Init
         lectures = new ArrayList<Lecture>();
@@ -94,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
        //Attach Click Listener to adapter ( Question List )
         questionList.setAdapter(adapter);
+        
         questionList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -133,6 +146,10 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
 
         if (id == R.id.action_settings) {
+            //Start SettingsActivity
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.putExtra("meteor_url", mUrl);
+            startActivityForResult(intent, 0);
             return true;
 
             /*
@@ -226,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
 
 
-
     void Log(String msg){
         Log.d("SARA", msg);
     }
@@ -246,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         localUser.Authenticate();
 
         currentLecture = new Lecture(defaultLectureCode); //debug
-        lectureCode.setText(currentLecture.code);
+        this.setTitle("Rewind: " + currentLecture.code);
     }
 
     @Override
@@ -362,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         }
         //Questions.clear();
         currentLecture = new Lecture(code);
-        lectureCode.setText(currentLecture.code);
+        this.setTitle("Rewind: "+currentLecture.code);
     }
 
     /* input dialog

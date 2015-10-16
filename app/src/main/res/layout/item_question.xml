@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <ImageView
         android:id="@+id/icon"
@@ -15,17 +16,31 @@
     <TextView
         android:id="@+id/tvName"
         android:layout_weight="1"
+        android:layout_marginTop="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
         android:textSize="16dp"
-        android:text="Name" />
+        android:text="Name"
+        android:textColor="@color/textColorPrimary"
+        />
+    <ProgressBar
+        android:id="@+id/tvVoteProgress"
+        android:layout_weight="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="100dp"
+        android:progressBackgroundTint="@color/colorPrimary"
+        android:max="10"
+        style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal" />
+    <!--
     <TextView
         android:id="@+id/tvVotes"
         android:layout_marginLeft="30dp"
         android:layout_weight="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#48adff"
-        android:text="Votes" />
+        android:text="Votes"
+        android:textColor="@color/textColorPrimary"
+        />
+        -->
 </LinearLayout>
