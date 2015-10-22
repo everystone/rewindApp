@@ -34,14 +34,15 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         }
         // Lookup view for data population
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-        TextView tvUsers = (TextView) convertView.findViewById(R.id.textViewUsers);
-        //TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
+       // TextView tvUsers = (TextView) convertView.findViewById(R.id.textViewUsers);
+        TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
 
-        ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
+        //ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
         // Populate the data into the template view using the data object
         tvName.setText(q.text);
-        tvVotes.setProgress(q.votes);
-        tvVotes.setMax(MainActivity.users);
+        tvVotes.setText(String.format("%d / %d", q.votes, MainActivity.users));
+       // tvVotes.setProgress(q.votes);
+       // tvVotes.setMax(MainActivity.users);
 
         int colorpos = position % colors.length;
         //super.getView(position, convertView, parent).setBackgroundColor(colors[colorpos]);

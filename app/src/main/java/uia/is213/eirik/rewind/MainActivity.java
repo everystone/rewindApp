@@ -1,5 +1,6 @@
 package uia.is213.eirik.rewind;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -42,7 +43,7 @@ import im.delight.android.ddp.ResultListener;
  *
  */
 
-public class MainActivity extends AppCompatActivity implements MeteorCallback{
+public class MainActivity extends Activity implements MeteorCallback{
 
     //Vars
     private Meteor mMeteor;
