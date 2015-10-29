@@ -13,15 +13,9 @@ public class KeyValueDB {
 
     public KeyValueDB(){
     }
-
     private static SharedPreferences getPrefs() {
         return MainActivity.getAppContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
-
-    public static String getUsername(Context context) {
-        return getPrefs().getString("username_key", "default_username");
-    }
-
     public static void SaveUserData(String usr, String pw, String mail){
         SharedPreferences.Editor editor = getPrefs().edit();
         editor.putString("username", usr);

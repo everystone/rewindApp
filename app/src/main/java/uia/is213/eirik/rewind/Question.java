@@ -2,6 +2,13 @@ package uia.is213.eirik.rewind;
 
 import android.util.Log;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Hours;
+import org.joda.time.Minutes;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormat;
+import org.joda.time.format.PeriodFormatter;
 import org.json.JSONObject;
 
 import java.util.Date;
@@ -18,7 +25,8 @@ public class Question {
     public String id;
     public String lectureCode;
     public String author;
-    public Date date;
+    public String age;
+    public DateTime date;
     public Integer votes;
     public boolean hasVoted = false; // If App user has voted on this question
 
@@ -30,6 +38,18 @@ public class Question {
         this.votes = 0;
 
         Log.d("SARA", "Question Created: " + text);
+    }
+    public void setDate(DateTime date) {
+        this.date = date;
+
+        DateTime now = new DateTime();
+        /*
+        Period period = new Period( date, now );
+        PeriodFormatter periodFormatter = PeriodFormat.wordBased();
+        String output = periodFormatter.print( period );
+        this.age = output;
+        */
+       age = Minutes.minutesBetween(date, now).getMinutes()+"m";
     }
 
     // Hmm.. Call Meteor Vote, server should know if we already voted or not.
@@ -68,5 +88,22 @@ public class Question {
     @Override
     public String toString(){
         return text;
+    }
+
+    /**
+     *     Postes a question using text from dialogResult to currentLecture
+        Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
+     */
+
+    private static boolean postQuestion(String lectureCode, String text){
+        Object[] methodArgs = new Object[1];
+        Map<String, String> options = new HashMap<>();
+
+        options.put("lectureCode", lectureCode);
+        options.put("questionText", text);
+        methodArgs[0] = options;
+
+        MeteorSingleton.getInstance().call("questionInsertAddVote", methodArgs);
+        return true;
     }
 }

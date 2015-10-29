@@ -22,5 +22,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'joda-time:joda-time:2.8.2' // for joda
     compile files('libs/Android-DDP.jar')
 }

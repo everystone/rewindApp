@@ -21,11 +21,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 
-
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -77,11 +78,9 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         //Fetch IP
         String ip = data.getExtras().getString("server_ip");
         //Compare with current Ip, if changed, reconnect to new.
-
         Log("Server Ip: "+ip);
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -97,7 +96,6 @@ public class MainActivity extends Activity implements MeteorCallback{
         //Get reference to controls
         questionList = (ListView)findViewById(R.id.questionListView);
         status = (TextView)findViewById(R.id.statusText);
-        //lectureCode = (TextView)findViewById(R.id.lectureCode);
 
         // Init
         lectures = new ArrayList<Lecture>();
@@ -105,9 +103,7 @@ public class MainActivity extends Activity implements MeteorCallback{
         voteMap = new ArrayList<Vote>();
         adapter = new QuestionAdapter(this, Questions);
 
-       //Attach Click Listener to adapter ( Question List )
         questionList.setAdapter(adapter);
-        
         questionList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -122,9 +118,7 @@ public class MainActivity extends Activity implements MeteorCallback{
         //Check if user data exists on device
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         localUser = new User(settings.getString("username", "default"), settings.getString("password", "pass"), settings.getString("email", "default@localhost.com"));
-
         defaultLectureCode = settings.getString("lectureCode", "odycl");
-
         //Connect Meteor
         mMeteor = MeteorSingleton.createInstance(this, mUrl);
         mMeteor.setCallback(this);
@@ -144,8 +138,6 @@ public class MainActivity extends Activity implements MeteorCallback{
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-
         if (id == R.id.action_settings) {
             //Start SettingsActivity
             Intent intent = new Intent(this, SettingsActivity.class);
@@ -184,7 +176,6 @@ public class MainActivity extends Activity implements MeteorCallback{
             });
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -198,7 +189,7 @@ public class MainActivity extends Activity implements MeteorCallback{
         Notification n  = new Notification.Builder(this)
                 .setContentTitle("Rewind - "+title)
                 .setContentText(text)
-                .setSmallIcon(R.drawable.question)
+                .setSmallIcon(R.drawable.questionmark)
               //  .setSmallIcon(R.drawable.icon)
                 .setAutoCancel(true) //clears Notification when clicked on
                 .setContentIntent(pIntent).build();
@@ -206,8 +197,11 @@ public class MainActivity extends Activity implements MeteorCallback{
         notificationManager.notify(0, n);
     }
 
-    //Postes a question using text from dialogResult to currentLecture
-    //Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
+    /**
+     * Postes a question using text from dialogResult to currentLecture
+     *Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
+     */
+
    private boolean postQuestion(){
        Object[] methodArgs = new Object[1];
        Map<String, String> options = new HashMap<>();
@@ -241,9 +235,6 @@ public class MainActivity extends Activity implements MeteorCallback{
         });
     }
 
-
-
-
     void Log(String msg){
         Log.d("SARA", msg);
     }
@@ -252,10 +243,8 @@ public class MainActivity extends Activity implements MeteorCallback{
     public void onConnect(boolean b) {
         status.setText("Connected to: " + mUrl);
         Log("Connected");
-
         //Clear Questions..
         Questions.clear();
-
         /*
          * Because of checks on this.userId on server, we must authenticate
          * so that this.userId is set on server.
@@ -283,6 +272,11 @@ public class MainActivity extends Activity implements MeteorCallback{
         switch(Collection){
             case "questions":
                 Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
+                String unix_time_ms = data.getJSONObject("submitted").getString("$date");
+                long unix_time = (long)Double.parseDouble(unix_time_ms);
+                DateTime date = new DateTime(unix_time / 1000);
+                Log("Date parsed: "+date);
+                q.setDate(date);
                 Questions.add(q);
                 //If this is not our question, notify us
                 if(!q.author.equals(localUser.getId()))
@@ -414,7 +408,7 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     private Question qById(String id){
         for (Question q : Questions) {
-            if(q.id.equals(id))
+            if (q.id.equals(id))
                 return q;
         }
             Log("qById no match: "+id);

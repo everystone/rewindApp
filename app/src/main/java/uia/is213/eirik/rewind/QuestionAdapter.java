@@ -4,15 +4,10 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * Created by Eirik on 28.09.2015.
@@ -33,12 +28,14 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_question, parent, false);
         }
         // Lookup view for data population
+        TextView tvDate = (TextView)convertView.findViewById(R.id.tvDate);
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
        // TextView tvUsers = (TextView) convertView.findViewById(R.id.textViewUsers);
         TextView tvVotes = (TextView) convertView.findViewById(R.id.tvVotes);
 
         //ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
         // Populate the data into the template view using the data object
+        tvDate.setText(q.age);
         tvName.setText(q.text);
         tvVotes.setText(String.format("%d / %d", q.votes, MainActivity.users));
        // tvVotes.setProgress(q.votes);
