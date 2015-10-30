@@ -1,5 +1,6 @@
 package uia.is213.eirik.rewind;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import org.joda.time.DateTime;
@@ -21,14 +22,35 @@ import im.delight.android.ddp.MeteorSingleton;
  * Created by Eirik on 28.09.2015.
  */
 public class Question {
-    public String text;
-    public String id;
-    public String lectureCode;
-    public String author;
-    public String age;
-    public DateTime date;
-    public Integer votes;
-    public boolean hasVoted = false; // If App user has voted on this question
+    private String text;
+    private String id;
+    private String lectureCode;
+    private String author;
+    private String age;
+    private DateTime date;
+    private Integer votes;
+
+    public String getText() {return text;}
+    public Integer getVotes() {return votes;}
+    public String getId() {return id;}
+    public String getAge() {return age;}
+    public void setAge(String age) {this.age = age;}
+    public void setVotes(Integer votes) {this.votes = votes;}
+    public void setText(String text) {this.text = text;}
+    public Integer getColor() {return color;}
+    public void setColor(Integer color) {this.color = color;}
+    private Integer color;
+    private boolean hasVoted = false; // If App user has voted on this question
+    public void setHasVoted(boolean b){
+        this.hasVoted = b;
+        if(b){
+            color = Color.argb(100, 0, 200, 0);
+        }else {
+            color =null;
+        }
+    }
+    public void upvote(){ votes++; }
+    public void downvote(){ votes--; }
 
     public Question(String id, String text, String lectureCode, String author){
         this.id = id;
@@ -41,7 +63,6 @@ public class Question {
     }
     public void setDate(DateTime date) {
         this.date = date;
-
         DateTime now = new DateTime();
         /*
         Period period = new Period( date, now );
@@ -75,15 +96,20 @@ public class Question {
             methodArgs[0] = options;
 
             MeteorSingleton.getInstance().call("voteInsert", methodArgs);
+           // this.color = R.color.accent;
             // No need to set hasVoted to true here, when we receive the Vote back from the server, it will be sat to true.
         }else {
             // Remove our Vote
+            this.color = null;
             Log.d("SARA", "Removing our vote: "+id);
             MeteorSingleton.getInstance().call("voteDelete", new Object[]{ id});
+
 
         }
 
     }
+
+
 
     @Override
     public String toString(){
@@ -105,5 +131,9 @@ public class Question {
 
         MeteorSingleton.getInstance().call("questionInsertAddVote", methodArgs);
         return true;
+    }
+
+    public String getAuthor() {
+        return author;
     }
 }

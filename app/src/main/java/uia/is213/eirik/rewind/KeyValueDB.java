@@ -24,6 +24,13 @@ public class KeyValueDB {
         editor.commit();
     }
 
+    public static User getUserData(){
+        return new User(getPrefs().getString("username", "test"),getPrefs().getString("password", "password"), getPrefs().getString("email", "test@test.com"));
+    }
+    /*public static String[] getUserData(){
+        return new String[]{ getPrefs().getString("username", "test"), getPrefs().getString("email", "test@test.com"), getPrefs().getString("password", "password") };
+    }*/
+
     public static void setKeyValue(String key, String value) {
         SharedPreferences.Editor editor = getPrefs().edit();
         editor.putString(key, value);

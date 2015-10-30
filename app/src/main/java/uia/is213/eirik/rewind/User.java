@@ -2,6 +2,7 @@ package uia.is213.eirik.rewind;
 
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import org.json.JSONException;
@@ -32,6 +33,7 @@ public class User {
 
     void Log(String msg){
         Log.d("SARA", msg);
+        Toast.makeText(MainActivity.getAppContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
     public String getId(){

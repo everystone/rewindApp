@@ -4,10 +4,22 @@ package uia.is213.eirik.rewind;
  * Created by Eirik on 29.09.2015.
  */
 public class Vote {
-    public String id;
-    public String lectureCode;
-    public String author;
-    public String questionId;
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getLectureCode() {
+        return lectureCode;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    private String id;
+    private String lectureCode;
+    private String author;
+    private String questionId;
     private Question question;
 
     public Vote(String id, String lectureCode, String author, String questionId){
@@ -24,5 +36,9 @@ public class Vote {
 
     public void setQuestion(Question question) {
         this.question = question;
+    }
+
+    public String getQuestionId() {
+        return questionId;
     }
 }

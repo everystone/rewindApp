@@ -14,15 +14,15 @@
         android:layout_alignParentStart="true" />
 
     <TextView
+        android:textColor="@color/primary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/server_ip"
         android:id="@+id/textViewServer"
-        android:layout_below="@+id/textViewHeader"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="113dp" />
+        android:layout_above="@+id/textViewServerIp"
+        android:layout_alignParentLeft="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -39,12 +39,102 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
         android:id="@+id/textViewServerIp"
-        android:layout_below="@+id/textViewServer"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:editable="true" />
+        android:editable="true"
+        android:layout_above="@+id/SettingsSaveBtn"
+        android:layout_alignParentStart="true" />
+
+
+    <TextView
+        android:textColor="@color/primary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Account"
+        android:id="@+id/editText"
+        android:editable="true"
+        android:layout_below="@+id/textViewHeader"
+        android:layout_alignParentStart="true" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/editText"
+        android:layout_above="@+id/textViewServer">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/username"
+                android:id="@+id/textView3"
+                android:layout_column="9" />
+
+            <EditText
+            android:layout_marginTop="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/username"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/editText"
+            android:layout_alignParentLeft="true"
+            android:text="username"
+                android:layout_column="12" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/email"
+                android:id="@+id/textView2"
+                android:layout_column="9" />
+
+            <EditText
+            android:layout_marginTop="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/email"
+            android:text="email"
+            android:layout_below="@+id/username"
+            android:layout_alignParentStart="true"
+                android:layout_column="12" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/password"
+                android:id="@+id/textView"
+                android:layout_column="9" />
+
+            <EditText
+            android:layout_marginTop="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/password"
+            android:text="password"
+            android:layout_below="@+id/email"
+            android:layout_alignParentStart="true"
+                android:layout_column="12" />
+        </TableRow>
+
+    </TableLayout>
 
 
 </RelativeLayout>

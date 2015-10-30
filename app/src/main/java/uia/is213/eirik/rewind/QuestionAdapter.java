@@ -35,16 +35,17 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
 
         //ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
         // Populate the data into the template view using the data object
-        tvDate.setText(q.age);
-        tvName.setText(q.text);
-        tvVotes.setText(String.format("%d / %d", q.votes, MainActivity.users));
+        tvDate.setText(q.getAge());
+        tvName.setText(q.getText());
+        tvVotes.setText(String.format("%d / %d", q.getVotes(), MainActivity.users));
        // tvVotes.setProgress(q.votes);
        // tvVotes.setMax(MainActivity.users);
 
-        int colorpos = position % colors.length;
-        //super.getView(position, convertView, parent).setBackgroundColor(colors[colorpos]);
-        //tvVotes.setText(q.votes.toString());
-        convertView.setBackgroundColor(colors[colorpos]);
+        if(q.getColor() == null) {
+            int colorpos = position % colors.length;
+            q.setColor(colors[colorpos]);
+        }
+        convertView.setBackgroundColor(q.getColor());
         // Return the completed view to render on screen
         return convertView;
     }

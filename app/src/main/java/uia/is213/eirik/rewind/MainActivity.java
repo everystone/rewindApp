@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -19,14 +18,10 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-
-
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -78,10 +73,31 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //Fetch IP
-        String ip = data.getExtras().getString("server_ip");
-        //Compare with current Ip, if changed, reconnect to new.
-        Log("Server Ip: "+ip);
+        switch(requestCode){
+            case Constants.SETTINGS_RESULT:
+                String ip = data.getExtras().getString("meteor_url");
+                if(!ip.equals(mUrl)){
+                    mUrl = ip;
+                    //User changed IP, attempt to connect to new ip.
+                    MeteorSingleton.getInstance().disconnect();
+                    mMeteor = MeteorSingleton.createInstance(this, mUrl);
+                    mMeteor.setCallback(this);
+                }
+
+                if(data.getExtras().getString("username") != null){
+                    localUser.username = data.getExtras().getString("username");
+                    localUser.email = data.getExtras().getString("email");
+                    localUser.password = data.getExtras().getString("password");
+                    Log("Reconnecting with new user details");
+                    // Attempt to Auth with new data
+                    mMeteor.logout();
+                    currentLecture.Leave();
+                    localUser.Authenticate();
+                }
+                Log("Server Ip: "+ip);
+                break;
+        }
+
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -98,9 +114,9 @@ public class MainActivity extends Activity implements MeteorCallback{
         status = (TextView)findViewById(R.id.statusText);
 
         // Init
-        lectures = new ArrayList<Lecture>();
-        Questions = new ArrayList<Question>();
-        voteMap = new ArrayList<Vote>();
+        lectures = new ArrayList<>();
+        Questions = new ArrayList<>();
+        voteMap = new ArrayList<>();
         adapter = new QuestionAdapter(this, Questions);
 
         questionList.setAdapter(adapter);
@@ -109,7 +125,6 @@ public class MainActivity extends Activity implements MeteorCallback{
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Question q = adapter.getItem(position);
                 q.Vote();
-                //Toast.makeText(getApplicationContext(), q.text, Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -119,6 +134,7 @@ public class MainActivity extends Activity implements MeteorCallback{
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         localUser = new User(settings.getString("username", "default"), settings.getString("password", "pass"), settings.getString("email", "default@localhost.com"));
         defaultLectureCode = settings.getString("lectureCode", "odycl");
+        mUrl = settings.getString("meteor_url", mUrl);
         //Connect Meteor
         mMeteor = MeteorSingleton.createInstance(this, mUrl);
         mMeteor.setCallback(this);
@@ -142,14 +158,13 @@ public class MainActivity extends Activity implements MeteorCallback{
             //Start SettingsActivity
             Intent intent = new Intent(this, SettingsActivity.class);
             intent.putExtra("meteor_url", mUrl);
-            startActivityForResult(intent, 0);
+            startActivityForResult(intent, Constants.SETTINGS_RESULT);
             return true;
 
             /*
              *   ASK A QUESTION
              */
         }else if(id == R.id.action_ask){
-
             //Display Dialog and call postQuestion if user clicks OK.
             inputDialog("Ask a question", new Callable<Boolean>() {
                 @Override
@@ -162,15 +177,12 @@ public class MainActivity extends Activity implements MeteorCallback{
              *   CHANGE LECTURE ROOM
              */
         }else if(id == R.id.action_change){
-            //Change Lecture
-
             //Display Dialog and Enter new Lecture if user clicks OK.
             inputDialog("Enter Lecture Code", new Callable<Void>(){
 
                 @Override
                 public Void call() throws Exception {
                     changeLecture(dialogResult);
-
                     return null;
                 }
             });
@@ -243,11 +255,14 @@ public class MainActivity extends Activity implements MeteorCallback{
     public void onConnect(boolean b) {
         status.setText("Connected to: " + mUrl);
         Log("Connected");
+        //Save meteor url
+        KeyValueDB.setKeyValue("meteor_url", mUrl);
+
         //Clear Questions..
         Questions.clear();
         /*
          * Because of checks on this.userId on server, we must authenticate
-         * so that this.userId is set on server.
+         * so that userId is set on server.
          */
         localUser.Authenticate();
 
@@ -279,8 +294,8 @@ public class MainActivity extends Activity implements MeteorCallback{
                 q.setDate(date);
                 Questions.add(q);
                 //If this is not our question, notify us
-                if(!q.author.equals(localUser.getId()))
-                    notify("New question..", q.text);
+                if(!q.getAuthor().equals(localUser.getId()))
+                    notify("New question..", q.getText());
                 break;
             case "votes":
                 Vote vote = new Vote(documentId, data.getString("lectureCode"), data.getString("author"), data.getString("questionId"));
@@ -288,23 +303,23 @@ public class MainActivity extends Activity implements MeteorCallback{
                 // Find questionId
                // String author = data.getString("author");
                // String id = data.getString("questionId");
-                if(vote.id == null){
+                if(vote.getId() == null){
                     Log("A vote was added without questionId");
                     throw new Exception("A vote was added without questionId");
                 }
 
                 //Find which Question this Vote belongs to
-                Question question = qById(vote.questionId);
+                Question question = qById(vote.getQuestionId());
                 if(question != null){
-                    question.votes++;
+                    question.upvote();
                     vote.setQuestion(question);
 
                     voteMap.add(vote);
                     //voteMap.put(vote, question); // We need to save the Vote ID, to identify Question when removing vote.
 
                     //Check if this was Our Vote.
-                    if(vote.author.equals(localUser.getId())){
-                        question.hasVoted = true;
+                    if(vote.getAuthor().equals(localUser.getId())){
+                        question.setHasVoted(true);
                         Log("*** Our Vote ***");
                     }
                 }
@@ -337,12 +352,12 @@ public class MainActivity extends Activity implements MeteorCallback{
                 if(v != null){
                     Question q = v.getQuestion();
                     if(q != null){
-                        q.votes--; // Downvote
+                        q.downvote(); // Downvote
                         voteMap.remove(v); // Remove vote from voteMap.
 
                         //Check if this was Our Vote
-                       if(v.author.equals(localUser.getId())){
-                           q.hasVoted = false;
+                       if(v.getAuthor().equals(localUser.getId())){
+                           q.setHasVoted(false);
                        }
                     }
                 }
@@ -408,7 +423,7 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     private Question qById(String id){
         for (Question q : Questions) {
-            if (q.id.equals(id))
+            if (q.getId().equals(id))
                 return q;
         }
             Log("qById no match: "+id);
@@ -417,7 +432,7 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     private Vote vById(String id){
         for(Vote v : voteMap){
-            if(v.id.equals(id))
+            if(v.getId().equals(id))
                 return v;
         }
         Log("vById no match: "+id);

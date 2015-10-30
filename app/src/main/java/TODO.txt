@@ -4,3 +4,4 @@ App:
 Settings page
 Refactoring
 User Feedback ( Lecture, users, etc )
+Set background to green on questions upvoted
