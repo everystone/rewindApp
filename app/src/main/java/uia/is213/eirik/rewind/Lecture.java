@@ -1,8 +1,5 @@
 package uia.is213.eirik.rewind;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.util.Log;
 
 import im.delight.android.ddp.MeteorSingleton;
 
@@ -27,18 +24,14 @@ public class Lecture {
 
 
     public void Enter(){
-        // Subscribe to Lecture Lecture
-       // String id = MeteorSingleton.getInstance().subscribe("lectures", new Object[]{code});
-        //Subscribe to questions and votes
+        // We need to keep the Subscription Ids returned so we can unsubscribe later.
         subIdQ = MeteorSingleton.getInstance().subscribe("questions", new Object[]{code});
         subIdV = MeteorSingleton.getInstance().subscribe("votes", new Object[]{code});
 
         //Tell others we joined
         MeteorSingleton.getInstance().call("memberInsert", new Object[]{code});
-        Log.d("SARA", "Subscription ids:");
-        Log.d("SARA", subIdQ+", "+subIdV);
 
-        //Save
+        //Save lectureCode so that next time we launch the app, we automatically connect to same lecture.
         KeyValueDB.setKeyValue("lectureCode", this.code);
     }
 

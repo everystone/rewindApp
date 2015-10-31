@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 /**
  * Created by Eirik on 13.10.2015.
+ * Used to access SharedPreferences.
  */
 public class KeyValueDB {
 

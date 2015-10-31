@@ -71,8 +71,17 @@ public class MainActivity extends Activity implements MeteorCallback{
     }
     public static Integer users;
 
+    /**
+     * Callback for Activities started with StartActivityForResult
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode != RESULT_OK)
+            return;
+
         switch(requestCode){
             case Constants.SETTINGS_RESULT:
                 String ip = data.getExtras().getString("meteor_url");
@@ -101,6 +110,10 @@ public class MainActivity extends Activity implements MeteorCallback{
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * Called when Activity is created
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,6 +161,11 @@ public class MainActivity extends Activity implements MeteorCallback{
         return true;
     }
 
+    /**
+     * Called when An item in the ActionBar menu is clicked.
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -191,8 +209,10 @@ public class MainActivity extends Activity implements MeteorCallback{
         return super.onOptionsItemSelected(item);
     }
 
-    /*
-     * Create  & Display Notification
+    /**
+     * Creates a Android Notification
+     * @param title
+     * @param text
      */
     private void notify(String title, String text){
         Intent intent = new Intent(this, MainActivity.class);
@@ -210,10 +230,9 @@ public class MainActivity extends Activity implements MeteorCallback{
     }
 
     /**
-     * Postes a question using text from dialogResult to currentLecture
-     *Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
+     * Posts a question using text from dialogResult to currentLecture
+     * Meteor method: questionInsertAddVote ( client/views/lecture/lecture_page_footer.js )
      */
-
    private boolean postQuestion(){
        Object[] methodArgs = new Object[1];
        Map<String, String> options = new HashMap<>();
@@ -226,6 +245,9 @@ public class MainActivity extends Activity implements MeteorCallback{
        return true;
    }
 
+    /**
+     * Creates a new Lecture and subscribes to it.
+     */
     private void createLecture() {
         MeteorSingleton.getInstance().call("lectureInsert", new ResultListener() {
             @Override
@@ -250,7 +272,12 @@ public class MainActivity extends Activity implements MeteorCallback{
     void Log(String msg){
         Log.d("SARA", msg);
     }
-    /* Meteor Callbacks */
+
+
+    /***************  Meteor Callbacks ************************
+     * ********************************************************
+     */
+
     @Override
     public void onConnect(boolean b) {
         status.setText("Connected to: " + mUrl);
@@ -287,10 +314,9 @@ public class MainActivity extends Activity implements MeteorCallback{
         switch(Collection){
             case "questions":
                 Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
-                String unix_time_ms = data.getJSONObject("submitted").getString("$date");
-                long unix_time = (long)Double.parseDouble(unix_time_ms);
-                DateTime date = new DateTime(unix_time / 1000);
-                Log("Date parsed: "+date);
+                String unix_time_in_ms = data.getJSONObject("submitted").getString("$date");
+                long unix_time_ms = (long)Double.parseDouble(unix_time_in_ms);
+                DateTime date = new DateTime(unix_time_ms);
                 q.setDate(date);
                 Questions.add(q);
                 //If this is not our question, notify us
@@ -380,8 +406,16 @@ public class MainActivity extends Activity implements MeteorCallback{
         Log("Exception: "+e.getMessage());
     }
 
-    //Misc helpers
 
+    /********************** HELPERS *****************
+     * **********************************************
+     */
+
+
+    /***
+     * Unsubscribes from currentLecture and enters new
+     * @param code - lectureCode
+     */
     private void changeLecture(String code){
         if(currentLecture != null){
             currentLecture.Leave();
@@ -391,11 +425,11 @@ public class MainActivity extends Activity implements MeteorCallback{
         this.setTitle("Rewind: "+currentLecture.code);
     }
 
-    /* input dialog
-     * @parameter title: Title to display
-     * @parameter: func - callback on success (OK button)
-     * Stores User Input in dialogResult.
-     * */
+    /**
+     * Displays inputDialog and calls Callable func on successs ( user clicks OK )
+     * @param title
+     * @param func
+     */
     private void inputDialog(String title, final Callable func) {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
         final EditText input = new EditText(this);

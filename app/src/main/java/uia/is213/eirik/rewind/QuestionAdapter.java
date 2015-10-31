@@ -35,7 +35,7 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
 
         //ProgressBar tvVotes = (ProgressBar)convertView.findViewById(R.id.tvVoteProgress);
         // Populate the data into the template view using the data object
-        tvDate.setText(q.getAge());
+        tvDate.setText(q.refreshAge());
         tvName.setText(q.getText());
         tvVotes.setText(String.format("%d / %d", q.getVotes(), MainActivity.users));
        // tvVotes.setProgress(q.votes);

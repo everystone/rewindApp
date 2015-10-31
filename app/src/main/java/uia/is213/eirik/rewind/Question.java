@@ -63,6 +63,10 @@ public class Question {
     }
     public void setDate(DateTime date) {
         this.date = date;
+        refreshAge();
+    }
+
+    public String refreshAge(){
         DateTime now = new DateTime();
         /*
         Period period = new Period( date, now );
@@ -70,9 +74,17 @@ public class Question {
         String output = periodFormatter.print( period );
         this.age = output;
         */
-       age = Minutes.minutesBetween(date, now).getMinutes()+"m";
-    }
+        int minutes = Minutes.minutesBetween(date, now).getMinutes();
+        if(minutes > 1440){ // 24 Hours
+            age = Days.daysBetween(date, now).getDays()+"d";
+        }else if(minutes > 60){
+            age = Hours.hoursBetween(date, now).getHours()+"h";
+        }else {
+            age = Minutes.minutesBetween(date, now).getMinutes() + "m";
+        }
 
+        return age;
+    }
     // Hmm.. Call Meteor Vote, server should know if we already voted or not.
     //
     public void Vote(){
