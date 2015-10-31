@@ -40,11 +40,16 @@ public class Question {
     public Integer getColor() {return color;}
     public void setColor(Integer color) {this.color = color;}
     private Integer color;
+
+    public boolean isHasVoted() {
+        return hasVoted;
+    }
+
     private boolean hasVoted = false; // If App user has voted on this question
     public void setHasVoted(boolean b){
         this.hasVoted = b;
         if(b){
-            color = Color.argb(100, 0, 200, 0);
+           // color = Color.argb(100, 0, 200, 0);
         }else {
             color =null;
         }

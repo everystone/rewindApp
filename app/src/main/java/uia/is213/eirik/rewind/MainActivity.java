@@ -10,6 +10,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,7 +41,7 @@ import im.delight.android.ddp.ResultListener;
  *
  */
 
-public class MainActivity extends Activity implements MeteorCallback{
+public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     //Vars
     private Meteor mMeteor;
@@ -124,7 +126,17 @@ public class MainActivity extends Activity implements MeteorCallback{
 
         //Get reference to controls
         questionList = (ListView)findViewById(R.id.questionListView);
-        status = (TextView)findViewById(R.id.statusText);
+        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                inputDialog("Ask a question", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() {
+                        return postQuestion();
+                    }});
+            }});
+        //status = (TextView)findViewById(R.id.statusText);
 
         // Init
         lectures = new ArrayList<>();
@@ -138,6 +150,7 @@ public class MainActivity extends Activity implements MeteorCallback{
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Question q = adapter.getItem(position);
                 q.Vote();
+                Log("Clicked item..");
 
             }
         });
@@ -280,7 +293,7 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     @Override
     public void onConnect(boolean b) {
-        status.setText("Connected to: " + mUrl);
+        //status.setText("Connected to: " + mUrl);
         Log("Connected");
         //Save meteor url
         KeyValueDB.setKeyValue("meteor_url", mUrl);
@@ -299,7 +312,7 @@ public class MainActivity extends Activity implements MeteorCallback{
 
     @Override
     public void onDisconnect(int i, String s) {
-        status.setText("Disconnected..");
+        //status.setText("Disconnected..");
         Questions.clear();
         //Log("Disconnected: " + s);
     }

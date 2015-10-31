@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:text="Date. "
         android:id="@+id/tvDate"
-        />
+        android:textSize="16dp" />
 
     <TextView
         android:layout_marginLeft="4dp"
@@ -17,21 +17,25 @@
         android:layout_weight="1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16dp"
+        android:textSize="18dp"
         android:text="Name"
         android:textColor="@color/textPrimary"
         android:background="?android:attr/selectableItemBackgroundBorderless"
-
+        android:layout_marginRight="30dp"
         />
-
+    <CheckBox
+        style="?android:attr/starStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:id="@+id/star" />
     <TextView
         android:id="@+id/tvVotes"
-        android:layout_marginLeft="30dp"
         android:layout_weight="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Votes"
         android:textColor="@color/textPrimary"
-        />
+        android:paddingRight="10dp" />
 
 </LinearLayout>
