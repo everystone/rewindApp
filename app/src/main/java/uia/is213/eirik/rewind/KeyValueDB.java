@@ -3,6 +3,8 @@ package uia.is213.eirik.rewind;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import uia.is213.eirik.rewind.Models.User;
+
 /**
  * Created by Eirik on 13.10.2015.
  * Used to access SharedPreferences.

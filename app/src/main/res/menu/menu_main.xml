@@ -1,10 +1,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+
+
     <item android:id="@+id/action_ask" android:title="@string/action_ask_question"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_change" android:title="@string/action_change_lecture"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+
+
+
+
+    <item android:id="@+id/action_sort"
+        android:title="Sort by votes"
+        android:orderInCategory="50"
+        android:icon="@drawable/ic_graph"
+        app:showAsAction="ifRoom|withText">
+    <menu>
+        <item android:id="@+id/action_sort_age"
+        android:title="@string/sort_age"
+        android:orderInCategory="50"
+        app:showAsAction="never"/>
+        <item android:id="@+id/action_sort_votes"
+            android:title="@string/sort_votes"
+            android:orderInCategory="50"
+            app:showAsAction="never"/>
+    </menu>
+    </item>
+
 </menu>

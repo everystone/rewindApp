@@ -1,6 +1,5 @@
 package uia.is213.eirik.rewind;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -24,6 +23,7 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -32,6 +32,13 @@ import im.delight.android.ddp.Meteor;
 import im.delight.android.ddp.MeteorCallback;
 import im.delight.android.ddp.MeteorSingleton;
 import im.delight.android.ddp.ResultListener;
+import uia.is213.eirik.rewind.Comparators.QuestionVotesComparator;
+import uia.is213.eirik.rewind.Models.Lecture;
+import uia.is213.eirik.rewind.Models.Question;
+import uia.is213.eirik.rewind.Models.QuestionAdapter;
+import uia.is213.eirik.rewind.Models.User;
+import uia.is213.eirik.rewind.Models.Vote;
+import uia.is213.eirik.rewind.Comparators.QuestionAgeComparator;
 
 /**
  *
@@ -185,40 +192,47 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            //Start SettingsActivity
-            Intent intent = new Intent(this, SettingsActivity.class);
-            intent.putExtra("meteor_url", mUrl);
-            startActivityForResult(intent, Constants.SETTINGS_RESULT);
-            return true;
+        switch(id){
+            case R.id.action_settings:
+                //Start SettingsActivity
+                Intent intent = new Intent(this, SettingsActivity.class);
+                intent.putExtra("meteor_url", mUrl);
+                startActivityForResult(intent, Constants.SETTINGS_RESULT);
+                return true;
 
-            /*
-             *   ASK A QUESTION
-             */
-        }else if(id == R.id.action_ask){
-            //Display Dialog and call postQuestion if user clicks OK.
-            inputDialog("Ask a question", new Callable<Boolean>() {
-                @Override
-                public Boolean call() {
-                    return postQuestion();
-                }
-            });
-            return true;
-            /*
-             *   CHANGE LECTURE ROOM
-             */
-        }else if(id == R.id.action_change){
-            //Display Dialog and Enter new Lecture if user clicks OK.
-            inputDialog("Enter Lecture Code", new Callable<Void>(){
+            case R.id.action_ask:
+                //Display Dialog and call postQuestion if user clicks OK.
+                inputDialog("Ask a question", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() {
+                        return postQuestion();
+                    }
+                });
+                return true;
 
-                @Override
-                public Void call() throws Exception {
-                    changeLecture(dialogResult);
-                    return null;
-                }
-            });
-            return true;
+            case R.id.action_change:
+                //Display Dialog and Enter new Lecture if user clicks OK.
+                inputDialog("Enter Lecture Code", new Callable<Void>(){
+
+                    @Override
+                    public Void call() throws Exception {
+                        changeLecture(dialogResult);
+                        return null;
+                    }
+                });
+                return true;
+
+            case R.id.action_sort_age:
+                Collections.sort(Questions,new QuestionAgeComparator());
+                adapter.notifyDataSetChanged();
+                break;
+
+            case R.id.action_sort_votes:
+                Collections.sort(Questions, new QuestionVotesComparator());
+                adapter.notifyDataSetChanged();
+                break;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -332,6 +346,10 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 DateTime date = new DateTime(unix_time_ms);
                 q.setDate(date);
                 Questions.add(q);
+
+                //Sort Questions
+                Collections.sort(Questions,new QuestionAgeComparator());
+
                 //If this is not our question, notify us
                 if(!q.getAuthor().equals(localUser.getId()))
                     notify("New question..", q.getText());

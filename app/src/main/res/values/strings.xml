@@ -17,4 +17,6 @@
     <string name="password">Password</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="sort_age">Sort by Age</string>
+    <string name="sort_votes">Sort by Votes</string>
 </resources>
