@@ -21,8 +21,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOError;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -268,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
        Object[] methodArgs = new Object[1];
        Map<String, String> options = new HashMap<>();
 
-       options.put("lectureCode", currentLecture.code);
+       options.put("lectureCode", currentLecture.getCode());
        options.put("questionText", dialogResult);
        methodArgs[0] = options;
 
@@ -325,7 +328,8 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         localUser.Authenticate();
 
         currentLecture = new Lecture(defaultLectureCode); //debug
-        this.setTitle("Rewind: " + currentLecture.code);
+        this.setTitle("Rewind: " + currentLecture.getCode());
+
     }
 
     @Override
@@ -344,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
         switch(Collection){
             case "questions":
-                Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"));
+                Question q = new Question(documentId, data.getString("questionText"), data.getString("lectureCode"), data.getString("author"), currentLecture);
                 String unix_time_in_ms = data.getJSONObject("submitted").getString("$date");
                 long unix_time_ms = (long)Double.parseDouble(unix_time_in_ms);
                 DateTime date = new DateTime(unix_time_ms);
@@ -385,6 +389,20 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                     }
                 }
                 break;
+            case "lectures":
+                //Data Added: lectures, AsCnMSTeHsRBJvhda, {"lectureCode":"43toj","members":["ggGY8QNTESrP4otCv"]}
+
+                // Check that this question id matches currentLecture
+                if(currentLecture.getCode().equals(data.getString("lectureCode"))){
+                    //set Members
+                    JSONArray members = data.getJSONArray("members");
+                    currentLecture.setMembers(members);
+                    Log("Members: " + members);
+
+
+
+                }
+                break;
         }
 
          adapter.notifyDataSetChanged(); // tell listview to redraw itself
@@ -392,14 +410,32 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         Log("Data Added: "+Collection+", "+documentId+", "+newJsonVals);
         }catch(JSONException ex){
             Log("Json Ex: "+ex.getMessage());
+            throw new RuntimeException(ex);
         }catch(Exception ex){
             Log("Data Exception: "+ex.getMessage());
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
     public void onDataChanged(String Collection, String documentId, String updatedVals, String removedVals) {
         Log("Data changed: " + Collection + ", " + documentId + ", " + updatedVals + ", " + removedVals);
+        ////Data changed: lectures, AsCnMSTeHsRBJvhda, {"members":["ggGY8QNTESrP4otCv","9WXsAuKinwBvWswim"]}, null
+        try {
+            JSONObject data = new JSONObject(updatedVals);
+
+            switch (Collection) {
+                case "lectures":
+                    // We should never be subscribed to more than one lecture, so this _should_ allways be currentLecture.
+                        JSONArray members = data.getJSONArray("members");
+                        currentLecture.setMembers(members);
+                    break;
+            }
+        }catch(JSONException ex){
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -438,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
     @Override
     public void onException(Exception e) {
-        Log("Exception: "+e.getMessage());
+        Log("Exception: " + e.getMessage());
     }
 
 
@@ -457,7 +493,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
         }
         //Questions.clear();
         currentLecture = new Lecture(code);
-        this.setTitle("Rewind: "+currentLecture.code);
+        this.setTitle("Rewind: "+currentLecture.getCode());
     }
 
     /**

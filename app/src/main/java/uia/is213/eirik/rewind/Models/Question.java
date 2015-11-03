@@ -23,6 +23,7 @@ public class Question {
     private String age;
     private DateTime date;
     private Integer votes;
+    private Lecture lecture;
 
     public Integer getMinutes() {
         return minutes;
@@ -44,7 +45,7 @@ public class Question {
     public boolean isHasVoted() {
         return hasVoted;
     }
-
+    public Lecture getLecture(){ return lecture; }
     private boolean hasVoted = false; // If App user has voted on this question
     public void setHasVoted(boolean b){
         this.hasVoted = b;
@@ -57,12 +58,13 @@ public class Question {
     public void upvote(){ votes++; }
     public void downvote(){ votes--; }
 
-    public Question(String id, String text, String lectureCode, String author){
+    public Question(String id, String text, String lectureCode, String author, Lecture lecture){
         this.id = id;
         this.text = text;
         this.lectureCode = lectureCode;
         this.author = author;
         this.votes = 0;
+        this.lecture = lecture;
 
         Log.d("SARA", "Question Created: " + text);
     }

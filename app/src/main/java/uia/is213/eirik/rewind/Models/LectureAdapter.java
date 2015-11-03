@@ -31,8 +31,8 @@ public class LectureAdapter extends ArrayAdapter<Lecture> {
         TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
         TextView tvOwner = (TextView) convertView.findViewById(R.id.tvOwner);
         // Populate the data into the template view using the data object
-        tvName.setText(lecture.name);
-        tvOwner.setText(lecture.owner);
+        tvName.setText(lecture.getName());
+        tvOwner.setText(lecture.getOwner());
         // Return the completed view to render on screen
         return convertView;
     }

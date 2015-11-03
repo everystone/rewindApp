@@ -44,7 +44,7 @@ public class QuestionAdapter extends ArrayAdapter<Question> {
         tvDate.setText(q.refreshAge());
         cb.setChecked(q.isHasVoted());
         tvName.setText(q.getText());
-        tvVotes.setText(String.format("%d / %d", q.getVotes(), MainActivity.users));
+        tvVotes.setText(String.format("%d / %d", q.getVotes(), q.getLecture().getNumbeOfMembers()));
        // tvVotes.setProgress(q.votes);
        // tvVotes.setMax(MainActivity.users);
 /*
