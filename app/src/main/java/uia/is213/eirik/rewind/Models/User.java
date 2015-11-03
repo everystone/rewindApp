@@ -1,5 +1,6 @@
 package uia.is213.eirik.rewind.Models;
 
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,15 +24,25 @@ public class User {
     private String token;
     private String tokenExpires;
     public boolean isLoggedIn=false;
-
+    private final String TAG = "RTAG";
+    // Normal constructor
     public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
     }
+    // Use device id as identification
+    public User(){
+        String android_id = Settings.Secure.getString(MainActivity.getAppContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        Log.d(TAG, "android_id: "+android_id);
+        this.username = android_id;
+        this.password = android_id;
+        this.email = android_id;
+    }
 
     void Log(String msg){
-        Log.d("SARA", msg);
+        Log.d(TAG, msg);
         Toast.makeText(MainActivity.getAppContext(), msg, Toast.LENGTH_SHORT).show();
     }
 

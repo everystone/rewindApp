@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -165,7 +166,10 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
         //Check if user data exists on device
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        localUser = new User(settings.getString("username", "default"), settings.getString("password", "pass"), settings.getString("email", "default@localhost.com"));
+        //localUser = new User(settings.getString("username", "default"), settings.getString("password", "pass"), settings.getString("email", "default@localhost.com"));
+        // Use Device ID as username and pass
+        localUser = new User();
+
         defaultLectureCode = settings.getString("lectureCode", "odycl");
         mUrl = settings.getString("meteor_url", mUrl);
         //Connect Meteor
