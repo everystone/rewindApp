@@ -1,4 +1,7 @@
 # rewindApp
-Android App for Meteor project Rewind
+Android Apps for Meteor project Rewind
 
-![Alpha](http://i.imgur.com/TawFnsM.png)
+Java
+![Alpha](http://i.imgur.com/D80yxTJ.png)
+
+React Native
