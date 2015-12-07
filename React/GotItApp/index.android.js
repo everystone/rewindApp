@@ -21,7 +21,7 @@ var {
 var GotItApp = React.createClass({
   getInitialState: function(){
     var options = {
-        endpoint: "http://192.168.11.192:3000/websocket",
+        endpoint: "http://eirik.pw:3000/websocket",
         SocketConstructor: WebSocket
     };
     return{
@@ -119,29 +119,46 @@ var GotItApp = React.createClass({
     this.setState({ message: "Ready.."})
   },
   render: function(){
+    var content = null;
     if(this.state.inLecture){
+      content =  (<View style={styles.content}>
+                    <Text>Status: {this.state.status}</Text>
+                    <QuestionList dataSource={this.state.dataSource}/>
+                    <Input ask={this.askQuestion}/>
+                  </View>);
+    }else {
+      content = (<View style={styles.content}>
+                  <LectureSelector onClick={this.enterLecture} />
+                </View>);
+    }
       return (
-        <View style={styles.container}>
-          <Text style={styles.header}>
-            Status: {this.state.status}
-          </Text>
-          <QuestionList dataSource={this.state.dataSource}/>
-          <Input ask={this.askQuestion}/>
+        <View style={styles.mainContainer}>
+          <Toolbar code={this.state.currentLectureCode}/>
+            {content}
         </View>
       );
-  }else {
-      return(
-        <LectureSelector onClick={this.enterLecture} />
-      );
-    }
+
   }
 });
 
+var Toolbar = React.createClass({
+  render: function(){
+    return(
+      <View>
+       <View style={styles.toolbar}>
+           <Text style={styles.toolbarButton}>{this.props.code}</Text>
+           <Text style={styles.toolbarTitle}>GotIt</Text>
+           <Text style={styles.toolbarButton}>Leave</Text>
+       </View>
+     </View>
+    );
+  }
+});
 
 var LectureSelector = React.createClass({
   getInitialState: function(){
     return{
-      lectureCode : 's70t1',
+      lectureCode : 'y1w4q',
     };
   },
   onClick: function(e){
@@ -205,12 +222,14 @@ var Input = React.createClass({
 });
 
 
+
 var styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  },
+  content:{
+    flex: 1,
+    backgroundColor:'#ebeef0',
   },
   listItem: {
    flex: 1,
@@ -233,11 +252,23 @@ var styles = StyleSheet.create({
     height: 40,
     borderWidth: 1
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  toolbar:{
+      backgroundColor:'#ec971f',
+      paddingTop:30,
+      paddingBottom:10,
+      flexDirection:'row'    //Step 1
   },
+  toolbarButton:{
+      width: 50,            //Step 2
+      color:'#fff',
+      textAlign:'center'
+  },
+  toolbarTitle:{
+      color:'#fff',
+      textAlign:'center',
+      fontWeight:'bold',
+      flex:1                //Step 3
+  }
 });
 
 AppRegistry.registerComponent('GotItApp', () => GotItApp);
