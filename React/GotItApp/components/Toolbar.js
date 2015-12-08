@@ -5,17 +5,23 @@ var React = require('react-native');
 var {
   View,
   Text,
-  StyleSheet
+  StyleSheet,
+  TouchableHighlight
 } = React;
 
 var Toolbar = React.createClass({
+  onLeaveClick: function(e){
+    this.props.leaveHandler();
+  },
   render: function(){
     return(
       <View>
        <View style={styles.toolbar}>
            <Text style={styles.toolbarButton}>{this.props.code}</Text>
            <Text style={styles.toolbarTitle}>GotIt</Text>
+           <TouchableHighlight onPress={this.onLeaveClick}>
            <Text style={styles.toolbarButton}>Leave</Text>
+           </TouchableHighlight>
        </View>
      </View>
     );
@@ -24,7 +30,7 @@ var Toolbar = React.createClass({
 
 var styles = StyleSheet.create({
   toolbar:{
-      backgroundColor:'#ec971f',
+      backgroundColor:'#454453',
       paddingTop:30,
       paddingBottom:10,
       flexDirection:'row'    //Step 1
@@ -38,6 +44,7 @@ var styles = StyleSheet.create({
       color:'#fff',
       textAlign:'center',
       fontWeight:'bold',
+      fontSize: 16,
       flex:1                //Step 3
   }
 })

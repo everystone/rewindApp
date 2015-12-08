@@ -26,7 +26,7 @@ var {
 var GotItApp = React.createClass({
   getInitialState: function(){
     var options = {
-        endpoint: "http://eirik.pw:3000/websocket",
+        endpoint: "http://192.168.11.87:3000/websocket",
         SocketConstructor: WebSocket
     };
     return{
@@ -49,7 +49,8 @@ var GotItApp = React.createClass({
   },
   onConnected: function(){
     this.setState({status: "Connected"});
-    //Subscribe
+    //Subscribe to LectureCodes
+    this.login();
 
   },
   onAdded: function(data){
@@ -99,19 +100,42 @@ var GotItApp = React.createClass({
     });
   },
   askQuestion: function(question){
-  /*  var args = {};
-    args.lectureCode = this.state.currentLectureCode;
-    args.questionText = question; */
-    var args = {
-    lectureCode: this.state.currentLectureCode,
-    questionText: question
-    };
-    console.log("Asking question: ", args);
-    this.state.ddp.method("questionInsertAddVote", [args], function(e, err){
-      if(err){
-        console.log("error: "+err);
+   var args = [];
+    args.push(this.state.currentLectureCode);
+    args.push(question);
+
+    console.log("Asking question: ", [args]);
+    //this.state.ddp.method("insertQuestion", ["s27h7", "what is up"], function(e, res){
+      this.state.ddp.method("insertQuestion", args, function(e, res){
+      if(e){
+        console.log(JSON.stringify(e));
+        /*
+        {"error":400,"reason":"Match failed","message":"Match failed [400]","errorType":"Meteor.Error"}
+        * This fails if user is not authenticated.
+        After the package account-password was removed from the backend, I don't know how to authenticate anymore.
+        */
       }
+      console.log("result: "+res);
     });
+  },
+  login: function(){
+    var options = {
+      createGuest: true
+    };
+    this.state.ddp.method("login", [options], function(e, res){
+      if(e){
+        console.log(JSON.stringify(e));
+        return;
+      }
+    console.log("Authenticated.");
+    });
+
+  },
+  leaveLecture: function(){
+    // Leave current lecture
+    if(this.state.inLecture){
+      this.ddp.method()
+    }
   },
   componentDidMount: function(){
     //Setup DDP event handlers
@@ -141,7 +165,7 @@ var GotItApp = React.createClass({
     }
       return (
         <View style={styles.mainContainer}>
-          <Toolbar code={this.state.currentLectureCode}/>
+          <Toolbar code={this.state.currentLectureCode} leaveHandler={this.state.leaveLecture}/>
             {content}
         </View>
       );

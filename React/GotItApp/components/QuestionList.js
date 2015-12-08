@@ -34,6 +34,7 @@ var styles = StyleSheet.create({
    flex: 1,
    flexDirection: 'row',
    backgroundColor: '#F5FCFF',
+   padding: 5,
  },
  listView: {
    paddingTop: 20,

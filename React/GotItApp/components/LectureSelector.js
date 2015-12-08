@@ -14,7 +14,7 @@ var {
 var LectureSelector = React.createClass({
   getInitialState: function(){
     return{
-      lectureCode : 'y1w4q',
+      lectureCode : 's27h7',
     };
   },
   onClick: function(e){
