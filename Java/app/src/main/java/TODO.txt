@@ -1,7 +1,9 @@
 Server:
 
 App:
-Settings page
-Refactoring
-User Feedback ( Lecture, users, etc )
-Set background to green on questions upvoted
+
+Update Dec 2015
+Auth no longer works
+Posting questions no longer works
+
+lecture members -> students

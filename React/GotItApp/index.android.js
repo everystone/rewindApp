@@ -6,6 +6,11 @@
 
 var React = require('react-native');
 var DDP = require('ddp.js');
+var Toolbar = require('./components/Toolbar.js');
+var Input = require('./components/Input.js');
+var LectureSelector = require('./components/LectureSelector.js');
+var QuestionList = require('./components/QuestionList.js');
+
 var {
   AppRegistry,
   StyleSheet,
@@ -83,7 +88,7 @@ var GotItApp = React.createClass({
 
   },
   onResult: function(data){
-
+    console.log("Result: ",data);
   },
   enterLecture: function(lectureCode){
     //subscribe to lectureCode
@@ -100,9 +105,12 @@ var GotItApp = React.createClass({
     var args = {
     lectureCode: this.state.currentLectureCode,
     questionText: question
-};
+    };
+    console.log("Asking question: ", args);
     this.state.ddp.method("questionInsertAddVote", [args], function(e, err){
-
+      if(err){
+        console.log("error: "+err);
+      }
     });
   },
   componentDidMount: function(){
@@ -141,88 +149,6 @@ var GotItApp = React.createClass({
   }
 });
 
-var Toolbar = React.createClass({
-  render: function(){
-    return(
-      <View>
-       <View style={styles.toolbar}>
-           <Text style={styles.toolbarButton}>{this.props.code}</Text>
-           <Text style={styles.toolbarTitle}>GotIt</Text>
-           <Text style={styles.toolbarButton}>Leave</Text>
-       </View>
-     </View>
-    );
-  }
-});
-
-var LectureSelector = React.createClass({
-  getInitialState: function(){
-    return{
-      lectureCode : 'y1w4q',
-    };
-  },
-  onClick: function(e){
-    this.props.onClick(this.state.lectureCode);
-  },
-  render: function(){
-    return(
-      <View>
-      <TextInput style={styles.Message} onChangeText={(text) => this.setState({lectureCode: text})} value={this.state.lectureCode}/>
-        <TouchableHighlight onPress={this.onClick}>
-          <Text style={styles.header}>Enter Lecture</Text>
-        </TouchableHighlight>
-    </View>
-    );
-  }
-});
-
-var QuestionList = React.createClass({
-  renderQuestion: function(question){
-    return(
-      <View style={styles.listItem}>
-        <Text style={styles.question}>{question.questionText}</Text>
-      </View>
-    );
-  },
-  render: function(){
-    return(
-      <ListView
-      dataSource={this.props.dataSource}
-      renderRow={this.renderQuestion}
-      style={styles.listView}
-    />
-    );
-  }
-});
-
-
-
-
-var Input = React.createClass({
-  getInitialState: function(){
-    return{
-      Message : '',
-    };
-  },
-  _onClick: function(e){
-    // ASk Question
-    this.props.ask(this.state.Message);
-    this.setState({ Message: '' });
-  },
-  render: function(){
-    return(
-      <View>
-      <TextInput style={styles.Message} onChangeText={(text) => this.setState({Message: text})} value={this.state.Message}/>
-        <TouchableHighlight onPress={this._onClick}>
-          <Text>Ask Question</Text>
-        </TouchableHighlight>
-    </View>
-    );
-  }
-});
-
-
-
 var styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
@@ -231,15 +157,6 @@ var styles = StyleSheet.create({
     flex: 1,
     backgroundColor:'#ebeef0',
   },
-  listItem: {
-   flex: 1,
-   flexDirection: 'row',
-   backgroundColor: '#F5FCFF',
- },
- listView: {
-   paddingTop: 20,
-   backgroundColor: '#F5FCFF',
- },
   header: {
     fontSize: 20,
     textAlign: 'center',
@@ -248,27 +165,9 @@ var styles = StyleSheet.create({
   question: {
     fontSize: 25,
   },
-  Message: {
-    height: 40,
-    borderWidth: 1
-  },
-  toolbar:{
-      backgroundColor:'#ec971f',
-      paddingTop:30,
-      paddingBottom:10,
-      flexDirection:'row'    //Step 1
-  },
-  toolbarButton:{
-      width: 50,            //Step 2
-      color:'#fff',
-      textAlign:'center'
-  },
-  toolbarTitle:{
-      color:'#fff',
-      textAlign:'center',
-      fontWeight:'bold',
-      flex:1                //Step 3
-  }
+
 });
+
+
 
 AppRegistry.registerComponent('GotItApp', () => GotItApp);

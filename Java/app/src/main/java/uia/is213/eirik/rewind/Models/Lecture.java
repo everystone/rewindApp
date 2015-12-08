@@ -26,7 +26,9 @@ public class Lecture {
         return owner;
     }
     private String code; // lectureCode
-
+    private String title;
+    public String getTitle(){ return this.title; }
+    public void setTitle(String title){ this.title = title;}
     private String subIdQ; // subscription id questions
     private String subIdV; // subscription id VOtes
     private String subIdL; // subscription Id LEctures
@@ -55,16 +57,7 @@ public class Lecture {
         if(members == null) return 0;
         return members.length();
     }
-    /*
-    public int addMember(String id){
-        members.put(id, new Member(id));
-        return members.size();
-    }
-    public int delMember(String id){
-        if(members.containsKey(id))
-            members.remove(id);
-        return members.size();
-    }*/
+
 
     public void Enter(){
         // We need to keep the Subscription Ids returned so we can unsubscribe later.

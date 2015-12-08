@@ -68,33 +68,39 @@ public class User {
         KeyValueDB.SaveUserData(username, password, email);
     }
 
+    // Update: Dec 2015, accounts-password package removed from server, authentication no longer works.
     public void Authenticate(){
-        MeteorSingleton.getInstance().loginWithUsername(this.username, this.password, new ResultListener() {
+        Log(String.format("Attempting to login: %s, %s", this.username, this.password));
+        MeteorSingleton.getInstance().loginWithEmail(this.username, this.password, new ResultListener() {
+
             @Override
             public void onSuccess(String s) {
                 Log("Authenticated: " + s);
                 saveId(s);
-                isLoggedIn=true;
+                isLoggedIn = true;
             }
+
             @Override
             public void onError(String s, String s1, String s2) {
                 Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
-                if (s1.equals("User not found")) {
-                    MeteorSingleton.getInstance().registerAndLogin(username, email, password, new ResultListener() {
-                        @Override
-                        public void onSuccess(String s) {
-                            Log("Registererd " + s);
-                            saveId(s);
-                            isLoggedIn = true;
-                        }
 
-                        @Override
-                        public void onError(String s, String s1, String s2) {
-                            Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
-                            isLoggedIn = false;
-                        }
-                    });
-                }
+                //if (s1.equals("User not found")) {
+                if (s1.equals("Unrecognized options for login request")){
+                MeteorSingleton.getInstance().registerAndLogin(username, email, password, new ResultListener() {
+                    @Override
+                    public void onSuccess(String s) {
+                        Log("Registererd " + s);
+                        saveId(s);
+                        isLoggedIn = true;
+                    }
+
+                    @Override
+                    public void onError(String s, String s1, String s2) {
+                        Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
+                        isLoggedIn = false;
+                    }
+                });
+            }
             }
 
         });

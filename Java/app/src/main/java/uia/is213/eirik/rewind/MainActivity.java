@@ -102,8 +102,11 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                     mUrl = ip;
                     //User changed IP, attempt to connect to new ip.
                     MeteorSingleton.getInstance().disconnect();
-                    mMeteor = MeteorSingleton.createInstance(this, mUrl);
-                    mMeteor.setCallback(this);
+                    KeyValueDB.setKeyValue("meteor_url", mUrl);
+
+                    //no way of destroying current singleton, app must be restarted.
+                    //mMeteor = MeteorSingleton.createInstance(this, mUrl);
+                    //mMeteor.setCallback(this);
                 }
 
                 if(data.getExtras().getString("username") != null){
@@ -275,7 +278,18 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
        options.put("questionText", dialogResult);
        methodArgs[0] = options;
 
-       MeteorSingleton.getInstance().call("questionInsertAddVote", methodArgs);
+       MeteorSingleton.getInstance().call("insertQuestion", methodArgs,new ResultListener() {
+           @Override
+           public void onSuccess(String s) {
+               Log("Question posted: "+s);
+
+           }
+
+           @Override
+           public void onError(String s, String s1, String s2) {
+               Log(String.format("Failed to post question: %s, %s, %s", s, s1, s2));
+           }
+       });
        return true;
    }
 
@@ -378,9 +392,7 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
                 if(question != null){
                     question.upvote();
                     vote.setQuestion(question);
-
                     voteMap.add(vote);
-                    //voteMap.put(vote, question); // We need to save the Vote ID, to identify Question when removing vote.
 
                     //Check if this was Our Vote.
                     if(vote.getAuthor().equals(localUser.getId())){
@@ -394,14 +406,17 @@ public class MainActivity extends AppCompatActivity implements MeteorCallback{
 
                 // Check that this question id matches currentLecture
                 if(currentLecture.getCode().equals(data.getString("lectureCode"))){
-                    //set Members
-                    JSONArray members = data.getJSONArray("members");
+
+                    // Update as of DEC 2015, members --> students, and field title added.
+                    //Data Added: lectures, rPFTpiJKsmYwY5hPH, {"lecturer":"B4Xc8whncFhHAZrr2","lectureCode":"pd7l1","title":"new lecture","students":[]}
+
+                    currentLecture.setTitle(data.getString("title"));
+                    JSONArray members = data.getJSONArray("students");
                     currentLecture.setMembers(members);
+
                     Log("Members: " + members);
 
-
-
-                }
+                 }
                 break;
         }
 
