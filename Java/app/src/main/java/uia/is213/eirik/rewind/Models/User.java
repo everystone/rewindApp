@@ -8,6 +8,9 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import im.delight.android.ddp.MeteorSingleton;
 import im.delight.android.ddp.ResultListener;
 import uia.is213.eirik.rewind.KeyValueDB;
@@ -69,9 +72,15 @@ public class User {
     }
 
     // Update: Dec 2015, accounts-password package removed from server, authentication no longer works.
+    // We can use the package artwells_accounts-guest to authenticate as guest
+    //@todo implement new auth using options: {"createGuest":true}
     public void Authenticate(){
-        Log(String.format("Attempting to login: %s, %s", this.username, this.password));
-        MeteorSingleton.getInstance().loginWithEmail(this.username, this.password, new ResultListener() {
+        Object[] methodArgs = new Object[1];
+        Map<String, String> options = new HashMap<>();
+        options.put("createGuest", "True");
+        methodArgs[0] = options;
+        Log(String.format("Attempting to authenticate as guest", this.username, this.password));
+        MeteorSingleton.getInstance().call("login", methodArgs , new ResultListener() {
 
             @Override
             public void onSuccess(String s) {
@@ -84,23 +93,6 @@ public class User {
             public void onError(String s, String s1, String s2) {
                 Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
 
-                //if (s1.equals("User not found")) {
-                if (s1.equals("Unrecognized options for login request")){
-                MeteorSingleton.getInstance().registerAndLogin(username, email, password, new ResultListener() {
-                    @Override
-                    public void onSuccess(String s) {
-                        Log("Registererd " + s);
-                        saveId(s);
-                        isLoggedIn = true;
-                    }
-
-                    @Override
-                    public void onError(String s, String s1, String s2) {
-                        Log(String.format("Auth failed: %s, %s, %s", s, s1, s2));
-                        isLoggedIn = false;
-                    }
-                });
-            }
             }
 
         });

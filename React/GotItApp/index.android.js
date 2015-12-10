@@ -15,10 +15,7 @@ var {
   AppRegistry,
   StyleSheet,
   Text,
-  TextInput,
   View,
-  TouchableHighlight,
-  ListView
 } = React;
 
 
@@ -40,17 +37,14 @@ var GotItApp = React.createClass({
         lectures: {},
         inLecture: false,
         currentLectureCode: '',
-        dataSource: new ListView.DataSource({
-          rowHasChanged: (row1, row2) => row1 !== row2,
-          }),
+
 
 
     };
   },
   onConnected: function(){
     this.setState({status: "Connected"});
-    //Subscribe to LectureCodes
-    this.login();
+    this._login();
 
   },
   onAdded: function(data){
@@ -66,16 +60,23 @@ var GotItApp = React.createClass({
         break;
       case "questions":
       var _questions = this.state.questions;
+      data.fields.votes = 0;
       _questions[data.id] = data.fields;
         this.setState({
           questions: _questions,
           status: data.id,
-          dataSource: this.state.dataSource.cloneWithRows(this.state.questions)
         });
         break;
 
       case "votes":
+      // BUG: setState() on dataSource does not trigger render() in child
+      var _questions = this.state.questions;
+      console.log("Adding vote for "+_questions[data.fields.questionId]);
+      _questions[data.fields.questionId].votes++;
 
+      this.setState({
+        questions: _questions,
+      });
         break;
     }
     //collection, id, fields
@@ -91,15 +92,16 @@ var GotItApp = React.createClass({
   onResult: function(data){
     console.log("Result: ",data);
   },
-  enterLecture: function(lectureCode){
+  _enterLecture: function(lectureCode){
     //subscribe to lectureCode
     this.state.ddp.sub("questions", [lectureCode]);
+    this.state.ddp.sub("votes", [lectureCode]);
     this.setState({
       currentLectureCode: lectureCode,
       inLecture: true
     });
   },
-  askQuestion: function(question){
+  _askQuestion: function(question){
    var args = [];
     args.push(this.state.currentLectureCode);
     args.push(question);
@@ -111,14 +113,16 @@ var GotItApp = React.createClass({
         console.log(JSON.stringify(e));
         /*
         {"error":400,"reason":"Match failed","message":"Match failed [400]","errorType":"Meteor.Error"}
-        * This fails if user is not authenticated.
-        After the package account-password was removed from the backend, I don't know how to authenticate anymore.
         */
       }
       console.log("result: "+res);
     });
   },
-  login: function(){
+  _vote: function(question){
+    // Vote question
+
+  },
+  _login: function(){
     var options = {
       createGuest: true
     };
@@ -131,7 +135,7 @@ var GotItApp = React.createClass({
     });
 
   },
-  leaveLecture: function(){
+  _leaveLecture: function(){
     // Leave current lecture
     if(this.state.inLecture){
       this.ddp.method()
@@ -155,17 +159,17 @@ var GotItApp = React.createClass({
     if(this.state.inLecture){
       content =  (<View style={styles.content}>
                     <Text>Status: {this.state.status}</Text>
-                    <QuestionList dataSource={this.state.dataSource}/>
-                    <Input ask={this.askQuestion}/>
+                    <QuestionList questions={this.state.questions} voteHandler={this._vote}/>
+                    <Input ask={this._askQuestion}/>
                   </View>);
     }else {
       content = (<View style={styles.content}>
-                  <LectureSelector onClick={this.enterLecture} />
+                  <LectureSelector onClick={this._enterLecture} />
                 </View>);
     }
       return (
         <View style={styles.mainContainer}>
-          <Toolbar code={this.state.currentLectureCode} leaveHandler={this.state.leaveLecture}/>
+          <Toolbar code={this.state.currentLectureCode} leaveHandler={this.state._leaveLecture}/>
             {content}
         </View>
       );
