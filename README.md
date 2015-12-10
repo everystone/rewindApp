@@ -8,3 +8,4 @@ This repository contains two different apps, one Java version and one React-Nati
 ![Settings](http://i.imgur.com/ulk4o4X.png)
 
 ## React Native
+![Alpha](http://i.imgur.com/Npvo9DO.png)

@@ -61,7 +61,7 @@ var styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     padding: 10,
-    backgroundColor: '#F6F6F6',
+    
   },
   separator: {
     height: 1,
